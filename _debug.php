@@ -1,131 +1,130 @@
 <?php
 /**
- * Diagnostico TEMPORAL para 500 en produccion.
- * Borrar este archivo apenas se resuelva el problema.
- *
- * Acceso: https://counsel.kyrosrd.com/_debug.php
+ * Diagnostico v2 — replica bootstrap completo + carga de controllers + render landing.
+ * BORRAR este archivo apenas se resuelva el 500.
  */
 
-// Forzar visibilidad de errores SOLO en esta pagina.
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-
 header('Content-Type: text/plain; charset=utf-8');
 
-$ok = "[OK]   ";
+$ok  = "[OK]   ";
 $bad = "[FAIL] ";
-$warn = "[WARN] ";
 
-echo "=== KyrosCounsel diagnostico ===\n\n";
+echo "=== KyrosCounsel diagnostico v2 ===\n\n";
+echo "PHP: " . PHP_VERSION . "  SAPI: " . PHP_SAPI . "  HTTP_HOST: " . ($_SERVER['HTTP_HOST'] ?? '?') . "\n\n";
 
-echo "PHP version: " . PHP_VERSION . "\n";
-echo "SAPI: " . PHP_SAPI . "\n";
-echo "HTTP_HOST: " . ($_SERVER['HTTP_HOST'] ?? '(none)') . "\n";
-echo "HTTPS: " . ($_SERVER['HTTPS'] ?? '(off)') . "\n";
-echo "DOCUMENT_ROOT: " . ($_SERVER['DOCUMENT_ROOT'] ?? '?') . "\n";
-echo "SCRIPT_FILENAME: " . ($_SERVER['SCRIPT_FILENAME'] ?? '?') . "\n";
-echo "\n";
+define('BASE_PATH', __DIR__);
 
-// PHP minimo
-echo (version_compare(PHP_VERSION, '8.0.0', '>=') ? $ok : $bad);
-echo "PHP 8.0+ requerido\n";
+// --- Bootstrap completo paso a paso ---
+$steps = [
+    'config.php'              => __DIR__ . '/config.php',
+    'app/security.php'        => __DIR__ . '/app/security.php',
+    'app/session.php'         => __DIR__ . '/app/session.php',
+    'app/helpers.php'         => __DIR__ . '/app/helpers.php',
+    'app/db.php'              => __DIR__ . '/app/db.php',
+    'app/audit.php'           => __DIR__ . '/app/audit.php',
+    'app/auth.php'            => __DIR__ . '/app/auth.php',
+    'app/tenant.php'          => __DIR__ . '/app/tenant.php',
+    'app/rbac.php'            => __DIR__ . '/app/rbac.php',
+    'app/countries.php'       => __DIR__ . '/app/countries.php',
+    'app/totp.php'            => __DIR__ . '/app/totp.php',
+    'app/resend.php'          => __DIR__ . '/app/resend.php',
+    'app/workflows.php'       => __DIR__ . '/app/workflows.php',
+    'app/immigration.php'     => __DIR__ . '/app/immigration.php',
+    'app/notifications.php'   => __DIR__ . '/app/notifications.php',
+    'app/templates.php'       => __DIR__ . '/app/templates.php',
+    'app/stripe.php'          => __DIR__ . '/app/stripe.php',
+    'app/admin.php'           => __DIR__ . '/app/admin.php',
+    'app/router.php'          => __DIR__ . '/app/router.php',
+];
 
-// Extensiones
-$exts = ['pdo','pdo_mysql','sodium','openssl','mbstring','json','session','filter'];
-foreach ($exts as $e) {
-    echo (extension_loaded($e) ? $ok : $bad) . "ext: {$e}\n";
+echo "-- Existencia de archivos del bootstrap --\n";
+$missing = [];
+foreach ($steps as $name => $path) {
+    if (!file_exists($path)) {
+        echo $bad . "{$name} -- NO EXISTE\n";
+        $missing[] = $name;
+    } else {
+        echo $ok . "{$name}\n";
+    }
 }
-echo "\n";
+if ($missing) {
+    echo "\n>>> Faltan archivos en el server. Subi: " . implode(', ', $missing) . "\n";
+    echo "El 500 puede ser por require_once de un archivo inexistente.\n\n";
+}
 
-// Cargar config
-echo "-- Cargando config.php --\n";
+// --- Cargar igual que index.php ---
+echo "\n-- Cargando como bootstrap.php --\n";
 try {
-    define('BASE_PATH', __DIR__);
-    require __DIR__ . '/config.php';
-    echo $ok . "config.php cargado\n";
-    echo "  APP_ENV   = " . APP_ENV . "\n";
-    echo "  APP_DEBUG = " . (APP_DEBUG ? 'true' : 'false') . "\n";
-    echo "  APP_URL   = " . APP_URL . "\n";
-    echo "  DB_HOST   = " . DB_HOST . "\n";
-    echo "  DB_NAME   = " . DB_NAME . "\n";
-    echo "  DB_USER   = " . DB_USER . "\n";
-    echo "  SESSION_SECURE = " . (SESSION_SECURE ? 'true' : 'false') . "\n";
+    require_once __DIR__ . '/config.php';
+
+    date_default_timezone_set(APP_TIMEZONE);
+    mb_internal_encoding('UTF-8');
+    ini_set('log_errors', '1');
+    ini_set('error_log', STORAGE_PATH . '/logs/php-errors.log');
+
+    foreach ($steps as $name => $path) {
+        if ($name === 'config.php' || !file_exists($path)) continue;
+        require_once $path;
+        echo $ok . "require {$name}\n";
+    }
+
+    // session start (lo que hace bootstrap real)
+    if (function_exists('secure_session_start') && session_status() !== PHP_SESSION_ACTIVE) {
+        @secure_session_start();
+        echo $ok . "secure_session_start()\n";
+    }
 } catch (Throwable $e) {
-    echo $bad . "config: " . $e->getMessage() . "\n";
+    echo "\n" . $bad . get_class($e) . ": " . $e->getMessage() . "\n";
+    echo "  in " . $e->getFile() . ":" . $e->getLine() . "\n";
     exit;
 }
-echo "\n";
 
-// Conexion DB
-echo "-- Probando DB --\n";
-try {
-    $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s', DB_HOST, DB_PORT, DB_NAME, DB_CHARSET);
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_TIMEOUT => 5,
-    ]);
-    $n = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-    echo $ok . "DB conectada. users count = {$n}\n";
-} catch (Throwable $e) {
-    echo $bad . "DB: " . $e->getMessage() . "\n";
-}
-echo "\n";
-
-// Permisos
-echo "-- Permisos --\n";
-$paths = [
-    __DIR__,
-    __DIR__ . '/storage',
-    __DIR__ . '/storage/sessions',
-    __DIR__ . '/storage/logs',
-    __DIR__ . '/uploads',
-];
-foreach ($paths as $p) {
-    if (!file_exists($p)) {
-        echo $bad . "no existe: {$p}\n";
-        continue;
-    }
-    $perm = substr(sprintf('%o', fileperms($p)), -4);
-    $w = is_writable($p) ? 'writable' : 'NOT writable';
-    echo (is_writable($p) ? $ok : $warn) . "{$p}  perms={$perm}  {$w}\n";
-}
-echo "\n";
-
-// Sodium quick check
-echo "-- Sodium --\n";
-if (function_exists('sodium_crypto_secretbox_keygen')) {
+// --- Cargar controllers como index.php ---
+echo "\n-- Cargando controllers (glob) --\n";
+$ctrls = glob(__DIR__ . '/app/controllers/*.php');
+echo "  encontrados: " . count($ctrls) . "\n";
+foreach ($ctrls as $f) {
     try {
-        $k = base64_decode(ENCRYPTION_KEY, true);
-        if ($k === false || strlen($k) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
-            echo $bad . "ENCRYPTION_KEY invalida (len=" . ($k===false?'?':strlen($k)) . " esperado=" . SODIUM_CRYPTO_SECRETBOX_KEYBYTES . ")\n";
-        } else {
-            echo $ok . "ENCRYPTION_KEY valida (32 bytes)\n";
-        }
+        require_once $f;
+        echo $ok . basename($f) . "\n";
     } catch (Throwable $e) {
-        echo $bad . "sodium: " . $e->getMessage() . "\n";
+        echo $bad . basename($f) . ": " . $e->getMessage() . " @ " . $e->getFile() . ":" . $e->getLine() . "\n";
+    }
+}
+
+// --- Probar ejecutar landing ---
+echo "\n-- Ejecutando public_ctrl_landing (silencioso) --\n";
+if (!function_exists('public_ctrl_landing')) {
+    echo $bad . "funcion no existe\n";
+} else {
+    try {
+        ob_start();
+        public_ctrl_landing([]);
+        $html = ob_get_clean();
+        echo $ok . "render OK, bytes=" . strlen($html) . "\n";
+    } catch (Throwable $e) {
+        echo $bad . get_class($e) . ": " . $e->getMessage() . "\n";
+        echo "  in " . $e->getFile() . ":" . $e->getLine() . "\n";
+        echo "  trace:\n" . $e->getTraceAsString() . "\n";
+    }
+}
+
+// --- Ultimas lineas del error log ---
+echo "\n-- storage/logs/php-errors.log (ultimas 40 lineas) --\n";
+$logf = __DIR__ . '/storage/logs/php-errors.log';
+if (file_exists($logf)) {
+    $lines = @file($logf);
+    if ($lines) {
+        $tail = array_slice($lines, -40);
+        echo implode('', $tail);
+    } else {
+        echo "(vacio)\n";
     }
 } else {
-    echo $bad . "sodium_crypto_secretbox_keygen no disponible\n";
-}
-echo "\n";
-
-// Probar bootstrap completo
-echo "-- Bootstrap completo --\n";
-try {
-    require __DIR__ . '/app/security.php';
-    echo $ok . "app/security.php\n";
-    require __DIR__ . '/app/helpers.php';
-    echo $ok . "app/helpers.php\n";
-    require __DIR__ . '/app/db.php';
-    echo $ok . "app/db.php\n";
-    require __DIR__ . '/app/session.php';
-    echo $ok . "app/session.php\n";
-    require __DIR__ . '/app/auth.php';
-    echo $ok . "app/auth.php\n";
-} catch (Throwable $e) {
-    echo $bad . get_class($e) . ": " . $e->getMessage() . "\n";
-    echo "  en " . $e->getFile() . ":" . $e->getLine() . "\n";
+    echo "(no existe {$logf})\n";
 }
 
 echo "\n=== fin ===\n";
