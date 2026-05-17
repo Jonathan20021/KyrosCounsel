@@ -1,0 +1,663 @@
+/* ==========================================================================
+   KyrosCounsel - Sistema visual premium con dark mode
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --primary:     239 84% 60%;
+    --primary-fg:  0 0% 100%;
+    --bg:          210 20% 98%;
+    --surface:     0 0% 100%;
+    --surface-2:   220 14% 96%;
+    --border:      214 32% 91%;
+    --border-strong: 215 14% 84%;
+    --fg:          222 47% 11%;
+    --fg-muted:    215 16% 47%;
+    --success:     142 71% 45%;
+    --warning:     38 92% 50%;
+    --danger:      0 84% 60%;
+    --info:        199 89% 48%;
+    --sidebar-bg:  222 47% 11%;
+    --sidebar-bg-2: 217 33% 17%;
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+    --shadow:    0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+}
+
+html.dark {
+    --bg:          222 47% 7%;
+    --surface:     222 47% 11%;
+    --surface-2:   217 33% 17%;
+    --border:      217 19% 22%;
+    --border-strong: 217 19% 30%;
+    --fg:          210 20% 96%;
+    --fg-muted:    215 16% 65%;
+    --sidebar-bg:  222 47% 5%;
+    --sidebar-bg-2: 222 47% 9%;
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+    --shadow:    0 4px 6px -1px rgb(0 0 0 / 0.5);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.6);
+}
+
+* { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+html, body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    letter-spacing: -0.01em;
+    background: hsl(var(--bg));
+    color: hsl(var(--fg));
+}
+.font-mono, code, pre { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* Tailwind override de bg principales en dark */
+html.dark body { background: hsl(var(--bg)); }
+html.dark .bg-white { background-color: hsl(var(--surface)) !important; }
+html.dark .bg-slate-50 { background-color: hsl(var(--bg)) !important; }
+html.dark .bg-slate-50\/30, html.dark .bg-slate-50\/50 { background-color: hsla(var(--surface-2), 0.5) !important; }
+html.dark .bg-slate-100 { background-color: hsl(var(--surface-2)) !important; }
+html.dark .text-slate-900 { color: hsl(var(--fg)) !important; }
+html.dark .text-slate-700 { color: hsl(210 20% 86%) !important; }
+html.dark .text-slate-600 { color: hsl(var(--fg-muted)) !important; }
+html.dark .text-slate-500 { color: hsl(215 16% 60%) !important; }
+html.dark .text-slate-400 { color: hsl(215 16% 50%) !important; }
+html.dark .border-slate-100 { border-color: hsl(var(--border)) !important; }
+html.dark .border-slate-200, html.dark .border-slate-200\/60 { border-color: hsl(var(--border)) !important; }
+html.dark .border-slate-300 { border-color: hsl(var(--border-strong)) !important; }
+html.dark .ring-slate-200 { --tw-ring-color: hsl(var(--border)) !important; }
+html.dark .ring-slate-300 { --tw-ring-color: hsl(var(--border-strong)) !important; }
+html.dark .hover\:bg-slate-50:hover { background-color: hsla(var(--surface-2), 0.6) !important; }
+html.dark .hover\:bg-slate-100:hover { background-color: hsl(var(--surface-2)) !important; }
+html.dark .hover\:bg-slate-200:hover { background-color: hsl(var(--border)) !important; }
+html.dark .focus\:bg-white:focus { background-color: hsl(var(--surface)) !important; }
+html.dark input, html.dark select, html.dark textarea {
+    background-color: hsl(var(--surface-2));
+    color: hsl(var(--fg));
+    border-color: hsl(var(--border)) !important;
+}
+html.dark .bg-slate-50 input, html.dark .bg-slate-50 select { background-color: hsl(var(--surface-2)) !important; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border-strong)); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--fg-muted)); border: 2px solid transparent; background-clip: padding-box; }
+
+/* ==========================================================================
+   Componentes
+   ========================================================================== */
+
+.kyros-card {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    box-shadow:
+        0 1px 0 0 rgb(0 0 0 / 0.02),
+        0 1px 3px 0 rgb(0 0 0 / 0.04);
+    transition: box-shadow .2s ease, border-color .2s ease, transform .2s ease;
+}
+html.dark .kyros-card {
+    box-shadow:
+        0 1px 0 0 rgb(255 255 255 / 0.04),
+        0 1px 3px 0 rgb(0 0 0 / 0.4);
+}
+.kyros-card-hover:hover {
+    box-shadow:
+        0 1px 0 0 rgb(0 0 0 / 0.02),
+        0 8px 24px -8px rgb(15 23 42 / 0.10),
+        0 4px 8px -4px rgb(15 23 42 / 0.06);
+    border-color: hsl(var(--border-strong));
+    transform: translateY(-1px);
+}
+
+/* Stat card premium con luminosidad superior */
+.kyros-stat {
+    position: relative;
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    padding: 1.25rem 1.375rem;
+    overflow: hidden;
+    transition: all .25s cubic-bezier(.4,0,.2,1);
+}
+.kyros-stat::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent);
+    opacity: 0.6;
+}
+.kyros-stat::after {
+    content: '';
+    position: absolute;
+    top: -40%; right: -20%;
+    width: 60%; height: 100%;
+    background: radial-gradient(circle at center, hsl(var(--primary) / 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    transition: opacity .3s;
+}
+.kyros-stat:hover { border-color: hsl(var(--primary) / 0.4); transform: translateY(-2px); }
+.kyros-stat:hover::after { opacity: 1.4; }
+html.dark .kyros-stat::after { background: radial-gradient(circle at center, hsl(var(--primary) / 0.12) 0%, transparent 70%); }
+
+.kyros-stat-icon {
+    height: 36px; width: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5),
+                0 1px 2px rgb(0 0 0 / 0.05);
+}
+html.dark .kyros-stat-icon { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); }
+
+/* Hero card con glassmorphism sutil */
+.kyros-hero {
+    position: relative;
+    background:
+        linear-gradient(135deg, hsl(239 84% 60% / 0.04) 0%, hsl(199 89% 48% / 0.04) 100%),
+        hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: 20px;
+    overflow: hidden;
+}
+.kyros-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 50%; height: 100%;
+    background: radial-gradient(ellipse at top right, hsl(239 84% 60% / 0.08), transparent 60%);
+    pointer-events: none;
+}
+html.dark .kyros-hero::before { background: radial-gradient(ellipse at top right, hsl(239 84% 60% / 0.18), transparent 60%); }
+
+.badge-soft { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.6875rem; font-weight: 500; line-height: 1.25rem; }
+.badge-success { background: hsl(142 71% 95%); color: hsl(142 71% 28%); }
+.badge-warning { background: hsl(38 92% 95%);  color: hsl(38 80% 35%); }
+.badge-danger  { background: hsl(0 84% 95%);   color: hsl(0 70% 40%); }
+.badge-info    { background: hsl(199 89% 95%); color: hsl(199 80% 32%); }
+.badge-neutral { background: hsl(220 14% 95%); color: hsl(215 16% 35%); }
+.badge-primary { background: hsl(239 84% 95%); color: hsl(239 80% 40%); }
+html.dark .badge-success { background: hsla(142 71% 45% / 0.15); color: hsl(142 71% 70%); }
+html.dark .badge-warning { background: hsla(38 92% 50% / 0.15);  color: hsl(38 92% 70%); }
+html.dark .badge-danger  { background: hsla(0 84% 60% / 0.15);   color: hsl(0 84% 75%); }
+html.dark .badge-info    { background: hsla(199 89% 48% / 0.15); color: hsl(199 89% 75%); }
+html.dark .badge-neutral { background: hsla(215 16% 47% / 0.18); color: hsl(215 16% 78%); }
+html.dark .badge-primary { background: hsla(239 84% 60% / 0.18); color: hsl(239 84% 80%); }
+
+.kyros-pulse-dot { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: hsl(var(--success)); }
+.kyros-pulse-dot::after { content: ''; position: absolute; inset: 0; border-radius: 999px; background: hsl(var(--success)); opacity: 0.5; animation: kyros-pulse 2s ease-out infinite; }
+@keyframes kyros-pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2.2); opacity: 0; } }
+
+.kyros-skel { background: linear-gradient(90deg, hsl(var(--surface-2)) 0%, hsl(var(--border)) 50%, hsl(var(--surface-2)) 100%); background-size: 200% 100%; animation: kyros-skel 1.4s ease-in-out infinite; border-radius: 6px; }
+@keyframes kyros-skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ===== Skeleton presets ===== */
+.skel-text     { display: inline-block; height: 0.875rem; min-width: 60px; border-radius: 4px; background: linear-gradient(90deg, hsl(var(--surface-2)) 0%, hsl(var(--border)) 50%, hsl(var(--surface-2)) 100%); background-size: 200% 100%; animation: kyros-skel 1.4s ease-in-out infinite; }
+.skel-title    { height: 1.25rem; min-width: 200px; }
+.skel-avatar   { display: inline-block; height: 36px; width: 36px; border-radius: 9999px; background: linear-gradient(90deg, hsl(var(--surface-2)) 0%, hsl(var(--border)) 50%, hsl(var(--surface-2)) 100%); background-size: 200% 100%; animation: kyros-skel 1.4s ease-in-out infinite; }
+.skel-avatar-sm{ height: 28px; width: 28px; }
+.skel-avatar-lg{ height: 48px; width: 48px; }
+.skel-card     { display: block; height: 96px; border-radius: 14px; background: linear-gradient(90deg, hsl(var(--surface-2)) 0%, hsl(var(--border)) 50%, hsl(var(--surface-2)) 100%); background-size: 200% 100%; animation: kyros-skel 1.4s ease-in-out infinite; }
+.skel-row      { display: block; height: 48px; border-radius: 8px; background: linear-gradient(90deg, hsl(var(--surface-2)) 0%, hsl(var(--border)) 50%, hsl(var(--surface-2)) 100%); background-size: 200% 100%; animation: kyros-skel 1.4s ease-in-out infinite; margin-bottom: 0.5rem; }
+
+/* ===== Inline editing helper ===== */
+.kyros-editable {
+    border-bottom: 1px dashed transparent;
+    transition: border-color .15s, background .15s;
+    cursor: text;
+    padding: 0 0.25rem;
+    border-radius: 4px;
+}
+.kyros-editable:hover { border-bottom-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.05); }
+.kyros-editable:focus { outline: none; border-bottom-color: hsl(var(--primary)); background: hsl(var(--surface-2)); }
+
+.nav-item { position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; color: rgb(203 213 225); transition: background .15s, color .15s; }
+.nav-item:hover { background: rgb(30 41 59); color: white; }
+.nav-item:hover .nav-item-icon { color: white; }
+.nav-item.active { background: rgb(30 41 59); color: white; }
+.nav-item.active .nav-item-icon { color: hsl(var(--primary)); }
+.nav-item.active::before { content: ''; position: absolute; left: -0.5rem; top: 25%; height: 50%; width: 3px; border-radius: 0 4px 4px 0; background: hsl(var(--primary)); }
+.nav-item-icon { display: inline-flex; flex-shrink: 0; transition: color .15s; }
+.nav-item-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ==========================================================================
+   Sidebar colapsable (premium)
+   ========================================================================== */
+.kyros-sidebar { width: 16rem; }
+.kyros-shell { --sidebar-w: 16rem; }
+
+@media (min-width: 1024px) {
+    html.sidebar-collapsed .kyros-sidebar { width: 4.25rem; }
+    html.sidebar-collapsed .kyros-shell { --sidebar-w: 4.25rem; }
+
+    /* Ocultar etiquetas */
+    html.sidebar-collapsed .kyros-sidebar-label,
+    html.sidebar-collapsed .kyros-sidebar-group-title,
+    html.sidebar-collapsed .nav-item-label {
+        opacity: 0;
+        visibility: hidden;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+    }
+
+    /* Centrar contenido cuando está colapsado */
+    html.sidebar-collapsed .kyros-sidebar-brand { padding-left: 0; padding-right: 0; justify-content: center; }
+    html.sidebar-collapsed .kyros-sidebar-brand a { justify-content: center; gap: 0; }
+    html.sidebar-collapsed .kyros-sidebar-tenant { padding-left: 0; padding-right: 0; }
+    html.sidebar-collapsed .kyros-sidebar-tenant > div { justify-content: center; }
+    html.sidebar-collapsed .kyros-sidebar-nav { padding-left: 0.4rem; padding-right: 0.4rem; }
+    html.sidebar-collapsed .nav-item { justify-content: center; padding: 0.55rem 0; }
+    html.sidebar-collapsed .nav-item.active::before { left: 0; }
+    html.sidebar-collapsed .kyros-sidebar-group-title { margin-bottom: 0; padding: 0; }
+
+    /* Separador entre grupos cuando está colapsado */
+    html.sidebar-collapsed .kyros-sidebar-nav > div + div {
+        position: relative;
+        padding-top: 0.6rem;
+    }
+    html.sidebar-collapsed .kyros-sidebar-nav > div + div::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 12px;
+        right: 12px;
+        height: 1px;
+        background: rgb(30 41 59);
+    }
+
+    /* Footer/profile */
+    html.sidebar-collapsed .kyros-sidebar-profile { justify-content: center; padding: 0.4rem; }
+    html.sidebar-collapsed .kyros-collapse-btn { justify-content: center; }
+    html.sidebar-collapsed .kyros-collapse-icon { transform: rotate(180deg); }
+
+    /* Tooltips solo cuando está colapsado */
+    html.sidebar-collapsed .kyros-sidebar [data-tooltip] {
+        position: relative;
+    }
+    html.sidebar-collapsed .kyros-sidebar [data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: calc(100% + 12px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: hsl(222 47% 11%);
+        color: rgb(241 245 249);
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.4rem 0.7rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        z-index: 100;
+        pointer-events: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        border: 1px solid rgb(51 65 85);
+        animation: kyros-tooltip-in 0.15s ease-out;
+    }
+    html.sidebar-collapsed .kyros-sidebar [data-tooltip]:hover::before {
+        content: '';
+        position: absolute;
+        left: calc(100% + 6px);
+        top: 50%;
+        transform: translateY(-50%);
+        border: 6px solid transparent;
+        border-right-color: hsl(222 47% 11%);
+        z-index: 100;
+        pointer-events: none;
+    }
+}
+
+@keyframes kyros-tooltip-in {
+    from { opacity: 0; transform: translateY(-50%) translateX(-4px); }
+    to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+/* En mobile, el sidebar siempre se muestra completo (ignora collapsed) */
+@media (max-width: 1023px) {
+    html.sidebar-collapsed .kyros-sidebar { width: 16rem; }
+    html.sidebar-collapsed .kyros-sidebar-label,
+    html.sidebar-collapsed .kyros-sidebar-group-title,
+    html.sidebar-collapsed .nav-item-label { opacity: 1; visibility: visible; width: auto; height: auto; }
+}
+
+.kpi-glow:hover { box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), var(--shadow-md); }
+
+.fade-in { animation: kyros-fade-in 0.4s ease-out; }
+@keyframes kyros-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+table.kyros-table thead th { font-size: 0.6875rem; letter-spacing: 0.04em; }
+table.kyros-table tbody tr { transition: background-color .12s; }
+table.kyros-table tbody tr:hover { background-color: hsla(var(--surface-2), 0.5); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; line-height: 1; transition: all .15s; cursor: pointer; }
+.btn-primary { background: hsl(var(--primary)); color: white; box-shadow: var(--shadow-xs); }
+.btn-primary:hover { background: hsl(239 84% 55%); box-shadow: var(--shadow); }
+.btn-secondary { background: hsl(var(--surface)); color: hsl(var(--fg)); border: 1px solid hsl(var(--border)); }
+.btn-secondary:hover { background: hsl(var(--surface-2)); }
+.btn-ghost { background: transparent; color: hsl(var(--fg)); }
+.btn-ghost:hover { background: hsl(var(--surface-2)); }
+.btn-danger { background: hsl(var(--danger)); color: white; }
+.btn-danger:hover { background: hsl(0 84% 55%); }
+
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-state-icon { width: 56px; height: 56px; margin: 0 auto 1rem; border-radius: 14px; background: linear-gradient(135deg, hsl(var(--surface-2)) 0%, hsl(var(--border)) 100%); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+.chart-wrap { position: relative; }
+.chart-wrap canvas { max-height: 280px; }
+
+/* ==========================================================================
+   Filtros chips (avanzados)
+   ========================================================================== */
+.chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.625rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; background: hsl(var(--surface-2)); color: hsl(var(--fg)); border: 1px solid hsl(var(--border)); transition: all .15s; }
+.chip-primary { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); border-color: hsl(var(--primary) / 0.3); }
+.chip-remove { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 999px; background: hsl(var(--fg) / 0.1); cursor: pointer; transition: background .15s; }
+.chip-remove:hover { background: hsl(var(--danger) / 0.2); color: hsl(var(--danger)); }
+
+/* ==========================================================================
+   Kanban drag & drop
+   ========================================================================== */
+.kanban-board { display: grid; grid-template-columns: repeat(8, minmax(260px, 1fr)); gap: 1rem; overflow-x: auto; padding-bottom: 1rem; }
+.kanban-col { background: hsl(var(--surface-2)); border: 1px solid hsl(var(--border)); border-radius: 14px; padding: 0.75rem; min-height: 300px; display: flex; flex-direction: column; }
+.kanban-col-header { display: flex; align-items: center; justify-content: space-between; padding: 0.25rem 0.25rem 0.75rem; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 0.75rem; }
+.kanban-col-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: hsl(var(--fg-muted)); }
+.kanban-col-count { background: hsl(var(--surface)); color: hsl(var(--fg)); border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 0.0625rem 0.5rem; font-size: 0.6875rem; font-weight: 600; }
+.kanban-cards { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; min-height: 100px; }
+.kanban-card { background: hsl(var(--surface)); border: 1px solid hsl(var(--border)); border-radius: 10px; padding: 0.75rem; cursor: grab; box-shadow: var(--shadow-xs); transition: transform .12s, box-shadow .15s, opacity .15s; }
+.kanban-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.kanban-card:active { cursor: grabbing; }
+.kanban-card.dragging { opacity: 0.4; }
+.kanban-col.drop-target { background: hsl(var(--primary) / 0.08); border-color: hsl(var(--primary)); }
+.kanban-priority-bar { height: 3px; border-radius: 999px; margin-bottom: 0.5rem; }
+.kanban-priority-urgent { background: hsl(var(--danger)); }
+.kanban-priority-high   { background: hsl(var(--warning)); }
+.kanban-priority-normal { background: hsl(215 16% 75%); }
+.kanban-priority-low    { background: hsl(215 16% 85%); }
+
+/* ==========================================================================
+   Responsive helpers
+   ========================================================================== */
+
+/* Tablas que se convierten a cards en mobile */
+@media (max-width: 640px) {
+    table.kyros-responsive { display: block; }
+    table.kyros-responsive thead { display: none; }
+    table.kyros-responsive tbody { display: block; }
+    table.kyros-responsive tr {
+        display: block;
+        margin-bottom: 0.75rem;
+        background: hsl(var(--surface));
+        border: 1px solid hsl(var(--border));
+        border-radius: 12px;
+        padding: 0.75rem 0.875rem;
+    }
+    table.kyros-responsive tr + tr { border-top: 1px solid hsl(var(--border)); }
+    table.kyros-responsive td {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.375rem 0 !important;
+        border: none !important;
+        text-align: left;
+    }
+    table.kyros-responsive td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: hsl(var(--fg-muted));
+        flex-shrink: 0;
+    }
+    table.kyros-responsive td[data-label="__primary"] {
+        flex-direction: column;
+        align-items: stretch;
+        padding-bottom: 0.625rem !important;
+        margin-bottom: 0.375rem;
+        border-bottom: 1px solid hsl(var(--border)) !important;
+    }
+    table.kyros-responsive td[data-label="__primary"]::before { display: none; }
+    .kyros-responsive-wrap { overflow: visible !important; border: none !important; box-shadow: none !important; background: transparent !important; }
+}
+
+/* Kanban: tarjetas mas estrechas en mobile */
+@media (max-width: 640px) {
+    .kanban-board { grid-template-columns: repeat(8, 220px) !important; }
+}
+
+/* Calendar: celdas mas chicas en mobile */
+@media (max-width: 640px) {
+    .calendar-cell { min-height: 70px !important; padding: 0.25rem !important; }
+    .calendar-cell .text-xs { font-size: 0.625rem; }
+    .calendar-cell .text-\[10px\] { font-size: 0.5625rem; }
+}
+
+/* x-cloak universal para Alpine - oculta hasta que Alpine inicialice */
+[x-cloak], [x-cloak="true"] { display: none !important; }
+.kyros-dropdown[x-cloak] { display: none !important; }
+
+/* ==========================================================================
+   Tooltip global — uso: <button data-tt="Mensaje">…</button>
+   ========================================================================== */
+[data-tt] { position: relative; }
+[data-tt]:hover::after, [data-tt]:focus-visible::after {
+    content: attr(data-tt);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    background: hsl(222 47% 11%);
+    color: rgb(241 245 249);
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 200;
+    pointer-events: none;
+    box-shadow: 0 6px 16px -4px rgba(0,0,0,0.35);
+    animation: kyros-tt-in 0.15s ease-out;
+}
+[data-tt]:hover::before, [data-tt]:focus-visible::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: hsl(222 47% 11%);
+    z-index: 200;
+    pointer-events: none;
+}
+@keyframes kyros-tt-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+[data-tt-pos="bottom"]:hover::after, [data-tt-pos="bottom"]:focus-visible::after {
+    bottom: auto; top: calc(100% + 6px);
+}
+[data-tt-pos="bottom"]:hover::before, [data-tt-pos="bottom"]:focus-visible::before {
+    bottom: auto; top: 100%;
+    border-top-color: transparent; border-bottom-color: hsl(222 47% 11%);
+}
+
+/* ==========================================================================
+   Tipografía premium + jerarquía
+   ========================================================================== */
+.kyros-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: hsl(var(--fg-muted));
+}
+.kyros-display {
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+}
+@media (min-width: 1024px) {
+    .kyros-display { font-size: 2.5rem; }
+}
+.kyros-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.kyros-subtitle { font-size: 0.875rem; color: hsl(var(--fg-muted)); }
+
+/* Section divider con texto */
+.kyros-section {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 0.5rem 0 1rem;
+}
+.kyros-section h3 { font-size: 0.875rem; font-weight: 600; letter-spacing: -0.01em; }
+.kyros-section .line { flex: 1; height: 1px; background: hsl(var(--border)); }
+
+/* Sparkline holder */
+.kyros-spark { height: 36px; }
+.kyros-spark canvas { max-height: 36px !important; }
+
+/* Number rolling effect (basico) */
+.kyros-number {
+    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Bento grid utilities
+   ========================================================================== */
+.bento {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(12, 1fr);
+}
+@media (min-width: 1024px) { .bento { gap: 1.25rem; } }
+
+.bento-1  { grid-column: span 12; }
+@media (min-width: 768px) {
+    .bento-md-3 { grid-column: span 3; }
+    .bento-md-4 { grid-column: span 4; }
+    .bento-md-6 { grid-column: span 6; }
+    .bento-md-8 { grid-column: span 8; }
+    .bento-md-12 { grid-column: span 12; }
+}
+@media (min-width: 1024px) {
+    .bento-lg-3 { grid-column: span 3; }
+    .bento-lg-4 { grid-column: span 4; }
+    .bento-lg-5 { grid-column: span 5; }
+    .bento-lg-6 { grid-column: span 6; }
+    .bento-lg-7 { grid-column: span 7; }
+    .bento-lg-8 { grid-column: span 8; }
+    .bento-lg-9 { grid-column: span 9; }
+    .bento-lg-12 { grid-column: span 12; }
+}
+
+/* Items de menu/dropdown con hover consistente light/dark */
+.kyros-menu-item {
+    display: block;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: hsl(var(--fg));
+    transition: background-color .12s;
+}
+.kyros-menu-item:hover {
+    background-color: hsl(var(--surface-2));
+}
+
+/* ==========================================================================
+   Dropdowns premium (notif, crear, perfil)
+   ========================================================================== */
+.kyros-dropdown {
+    position: absolute;
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: 14px;
+    box-shadow:
+        0 10px 38px -10px rgba(15, 23, 42, 0.20),
+        0 10px 20px -15px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+}
+html.dark .kyros-dropdown {
+    box-shadow:
+        0 10px 38px -10px rgba(0, 0, 0, 0.55),
+        0 10px 20px -15px rgba(0, 0, 0, 0.45);
+}
+
+.kyros-dropdown-header {
+    padding: 0.875rem 1rem;
+    background: linear-gradient(180deg, hsl(var(--surface-2)) 0%, hsl(var(--surface)) 100%);
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.kyros-dropdown-footer {
+    padding: 0.625rem 1rem;
+    border-top: 1px solid hsl(var(--border));
+    background: hsl(var(--surface-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Notification item */
+.kyros-notif-item {
+    border-top: 1px solid hsl(var(--border));
+    transition: background-color .12s;
+}
+.kyros-notif-item:first-child { border-top: none; }
+.kyros-notif-item:hover { background-color: hsl(var(--surface-2)); }
+.kyros-notif-item a { color: hsl(var(--fg)); text-decoration: none; }
+
+/* Action item (Crear dropdown) */
+.kyros-action-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 10px;
+    color: hsl(var(--fg));
+    text-decoration: none;
+    transition: background-color .15s, transform .15s;
+}
+.kyros-action-item:hover {
+    background-color: hsl(var(--surface-2));
+}
+.kyros-action-icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s;
+}
+.kyros-action-item:hover .kyros-action-icon { transform: scale(1.05); }
+.kyros-action-arrow {
+    color: hsl(var(--fg-muted));
+    font-size: 1rem;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all .15s;
+}
+.kyros-action-item:hover .kyros-action-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Active state del bell button */
+html.dark .hover\:bg-slate-100:hover { background-color: hsl(var(--surface-2)) !important; }
+
+/* Rotate icon al abrir Crear */
+.rotate-45 { transform: rotate(45deg); }
+
+/* Print mode para PDF */
+@media print {
+    body { background: white !important; color: black !important; }
+    .no-print, aside, header.h-16 { display: none !important; }
+    .kyros-card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+    main { overflow: visible !important; }
+    canvas { max-width: 100% !important; max-height: 200px !important; }
+    .print-only { display: block !important; }
+}
+.print-only { display: none; }

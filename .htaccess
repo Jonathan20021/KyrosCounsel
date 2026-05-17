@@ -1,0 +1,28 @@
+# Front controller: todo pasa por index.php (excepto archivos reales en /assets, /uploads)
+RewriteEngine On
+
+# Permite servir archivos estaticos directamente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Bloquea acceso directo a directorios sensibles (defensa en profundidad)
+RedirectMatch 403 ^/KyrosCounsel/(app|storage|db|config\.php|seed\.php)(/|$)
+
+# El resto va a index.php
+RewriteRule ^ index.php [QSA,L]
+
+# Headers de seguridad de respaldo
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Bloquea acceso a archivos sensibles
+<FilesMatch "^(config\.php|install\.sql|seed\.php|\.htaccess|\.env.*)$">
+    Require all denied
+</FilesMatch>
+
+ServerSignature Off

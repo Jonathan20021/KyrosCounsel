@@ -1,0 +1,14 @@
+[30-Apr-2026 19:14:13 America/Santo_Domingo] [security] CSRF token invalido ip=::1
+[30-Apr-2026 19:14:21 America/Santo_Domingo] [security] CSRF token invalido ip=::1
+[30-Apr-2026 23:24:33 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:24:35 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:24:36 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:24:38 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:24:45 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:24:46 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:25:09 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:25:13 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:25:14 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:25:14 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:25:15 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59
+[30-Apr-2026 23:25:15 America/Santo_Domingo] [fatal] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'kyroscounsel.templates' doesn't exist in C:\xampp\htdocs\KyrosCounsel\app\db.php:59

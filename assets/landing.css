@@ -1,0 +1,495 @@
+/* ==========================================================================
+   KyrosCounsel — Landing premium (Tailwind + GSAP companion)
+   ========================================================================== */
+
+/* ===== Variables ===== */
+:root {
+    --kn-grad-1: #6366f1;
+    --kn-grad-2: #8b5cf6;
+    --kn-grad-3: #ec4899;
+}
+
+/* Smooth font rendering */
+.font-sans { font-family: 'Inter', system-ui, -apple-system, sans-serif; font-feature-settings: 'cv11','ss01','ss03'; }
+
+/* ===== Navbar shrink on scroll ===== */
+#kn-nav.scrolled .kn-nav-inner {
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 12px 32px -12px rgba(15,23,42,0.12);
+}
+
+/* CTA shimmer */
+.kn-cta-shimmer::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: kn-shimmer 3s linear infinite;
+}
+@keyframes kn-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ===== Hero ===== */
+.kn-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+/* Grid background */
+.kn-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 80%);
+    z-index: -2;
+}
+
+/* Orbes flotantes */
+.kn-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+}
+.kn-orb-1 { top: -10%; left: -10%; width: 480px; height: 480px; background: radial-gradient(circle, rgba(99,102,241,0.55), transparent 70%); animation: kn-orb-drift-1 22s ease-in-out infinite; }
+.kn-orb-2 { top: 20%; right: -10%; width: 520px; height: 520px; background: radial-gradient(circle, rgba(139,92,246,0.45), transparent 70%); animation: kn-orb-drift-2 28s ease-in-out infinite; }
+.kn-orb-3 { bottom: -20%; left: 30%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(236,72,153,0.30), transparent 70%); animation: kn-orb-drift-3 35s ease-in-out infinite; }
+
+@keyframes kn-orb-drift-1 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(40px,30px) scale(1.08); }
+}
+@keyframes kn-orb-drift-2 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(-50px,40px) scale(0.94); }
+}
+@keyframes kn-orb-drift-3 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(60px,-40px) scale(1.05); }
+}
+
+/* Pill anuncio con gradient border animado */
+.kn-pill {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    background: linear-gradient(white, white) padding-box, linear-gradient(110deg, var(--kn-grad-1), var(--kn-grad-2), var(--kn-grad-3), var(--kn-grad-1)) border-box;
+    background-size: auto, 300% 100%;
+    border: 1.5px solid transparent;
+    font-size: 0.75rem; font-weight: 600;
+    color: rgb(67 56 202);
+    animation: kn-pill-shine 6s linear infinite;
+}
+@keyframes kn-pill-shine {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 0 0, -300% 0; }
+}
+
+/* H1 gradient text */
+.kn-headline {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 60%, #6366f1 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.kn-headline-grad {
+    background: linear-gradient(110deg, #6366f1 20%, #a855f7 50%, #ec4899 80%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: kn-headline-shine 6s linear infinite;
+}
+@keyframes kn-headline-shine {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* GSAP split-text spans */
+.kn-word { display: inline-block; }
+.kn-char { display: inline-block; will-change: transform, opacity; }
+
+/* Trust strip */
+.kn-trust {
+    display: flex; align-items: center; justify-content: center; gap: 2rem;
+    flex-wrap: wrap;
+    color: rgb(100 116 139);
+}
+
+/* ===== Mockup hero (dashboard preview) ===== */
+.kn-mockup-wrap {
+    position: relative;
+    perspective: 1500px;
+}
+.kn-mockup {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    box-shadow:
+        0 50px 100px -20px rgba(15,23,42,0.25),
+        0 30px 60px -30px rgba(15,23,42,0.30),
+        0 0 0 1px rgba(15,23,42,0.05);
+    transform-style: preserve-3d;
+    transform: rotateX(8deg) rotateY(-4deg);
+    transition: transform 0.6s ease;
+}
+.kn-mockup:hover { transform: rotateX(2deg) rotateY(0deg); }
+
+.kn-mockup-glow {
+    position: absolute;
+    inset: -40px;
+    border-radius: 32px;
+    background: radial-gradient(ellipse at center, rgba(99,102,241,0.35), transparent 60%);
+    filter: blur(40px);
+    z-index: -1;
+    animation: kn-mockup-glow 4s ease-in-out infinite;
+}
+@keyframes kn-mockup-glow {
+    0%,100% { opacity: 0.6; }
+    50%     { opacity: 1; }
+}
+
+.kn-mockup-bar {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    background: rgb(248 250 252);
+    border-bottom: 1px solid rgb(226 232 240);
+}
+.kn-mockup-dot { width: 10px; height: 10px; border-radius: 9999px; }
+
+/* ===== Marquee infinito (logos / texto) ===== */
+.kn-marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+.kn-marquee-track {
+    display: flex; gap: 4rem; align-items: center;
+    width: max-content;
+    animation: kn-marquee 40s linear infinite;
+}
+@keyframes kn-marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* ===== Bento grid features ===== */
+.kn-bento {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.25rem;
+}
+.kn-bento-card {
+    position: relative;
+    background: white;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+.kn-bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -15px rgba(15,23,42,0.15);
+    border-color: rgb(199 210 254);
+}
+.kn-bento-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(99,102,241,0.10), transparent 40%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+.kn-bento-card:hover::before { opacity: 1; }
+
+.kn-bento-large { grid-column: span 4; }
+.kn-bento-small { grid-column: span 2; }
+.kn-bento-medium { grid-column: span 3; }
+.kn-bento-full { grid-column: span 6; }
+
+@media (max-width: 1023px) {
+    .kn-bento { grid-template-columns: repeat(2, 1fr); }
+    .kn-bento-large, .kn-bento-medium, .kn-bento-small, .kn-bento-full { grid-column: span 2; }
+}
+
+/* ===== Cifrado animado ===== */
+.kn-lock {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1e1b4b, #4338ca);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    box-shadow: 0 12px 32px -8px rgba(99,102,241,0.5);
+    position: relative;
+}
+.kn-lock::after {
+    content: '';
+    position: absolute; inset: -4px;
+    border-radius: 18px;
+    background: conic-gradient(from 0deg, transparent, rgba(99,102,241,0.6), transparent 30%);
+    animation: kn-spin 4s linear infinite;
+    z-index: -1;
+}
+@keyframes kn-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== Number ticker ===== */
+.kn-ticker { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+
+/* ===== Workflow timeline ===== */
+.kn-step-num {
+    flex-shrink: 0;
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-weight: 800; font-size: 1.125rem;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px -8px rgba(99,102,241,0.5);
+}
+
+/* ===== Tabs interactivos del demo ===== */
+.kn-tab {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(71 85 105);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.kn-tab.active {
+    background: white;
+    color: rgb(15 23 42);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ===== Testimonials ===== */
+.kn-testimonial {
+    background: white;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 18px;
+    padding: 1.5rem;
+    transition: all 0.25s;
+}
+.kn-testimonial:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px -12px rgba(15,23,42,0.12);
+}
+
+/* ===== Pricing cards mejoradas ===== */
+.kn-price-card {
+    position: relative;
+    background: white;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 24px;
+    padding: 2rem;
+    transition: all 0.3s;
+}
+.kn-price-card:hover {
+    border-color: rgb(199 210 254);
+    transform: translateY(-2px);
+}
+.kn-price-featured {
+    background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+    color: white;
+    border: 1px solid rgba(99,102,241,0.4);
+    box-shadow: 0 30px 80px -20px rgba(99,102,241,0.45);
+    position: relative;
+    overflow: hidden;
+}
+.kn-price-featured::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: conic-gradient(from 0deg, transparent 0%, rgba(99,102,241,0.18) 25%, transparent 50%);
+    animation: kn-spin 12s linear infinite;
+    pointer-events: none;
+}
+
+/* Toggle anual/mensual */
+.kn-toggle {
+    display: inline-flex;
+    background: rgb(241 245 249);
+    border-radius: 9999px;
+    padding: 0.25rem;
+    position: relative;
+}
+.kn-toggle button {
+    position: relative; z-index: 1;
+    padding: 0.4rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgb(71 85 105);
+    border-radius: 9999px;
+    transition: color 0.2s;
+}
+.kn-toggle button.active { color: rgb(15 23 42); }
+.kn-toggle-pill {
+    position: absolute;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    background: white;
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.25s cubic-bezier(.4,0,.2,1);
+}
+
+/* ===== FAQ accordion ===== */
+.kn-faq-item {
+    border: 1px solid rgb(226 232 240);
+    border-radius: 14px;
+    overflow: hidden;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.kn-faq-item[open] { border-color: rgb(165 180 252); box-shadow: 0 4px 16px -4px rgba(99,102,241,0.15); }
+.kn-faq-trigger {
+    width: 100%;
+    padding: 1.1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    text-align: left;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.kn-faq-trigger:hover { background: rgb(248 250 252); }
+.kn-faq-icon { transition: transform 0.25s; flex-shrink: 0; }
+.kn-faq-item[open] .kn-faq-icon { transform: rotate(180deg); }
+.kn-faq-body {
+    padding: 0 1.25rem 1.25rem;
+    color: rgb(71 85 105);
+    font-size: 0.9375rem;
+    line-height: 1.65;
+}
+
+/* ===== CTA final ===== */
+.kn-final-cta {
+    position: relative;
+    border-radius: 32px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #7c3aed 100%);
+    color: white;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+.kn-final-cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(236,72,153,0.4), transparent),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(99,102,241,0.5), transparent);
+    pointer-events: none;
+}
+.kn-final-cta::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 80%);
+    pointer-events: none;
+}
+
+/* ===== Reveal animations ===== */
+.kn-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity 0.7s cubic-bezier(.21,.6,.35,1),
+        transform 0.7s cubic-bezier(.21,.6,.35,1);
+    will-change: opacity, transform;
+}
+.kn-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Si el usuario prefiere reducir movimiento, mostrar todo sin animación */
+@media (prefers-reduced-motion: reduce) {
+    .kn-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* No-JS fallback: mostrar todo (Tailwind no aplica dark/no-js) */
+html.no-js .kn-reveal { opacity: 1; transform: none; }
+
+/* ===== Comparison table ===== */
+.kn-table {
+    background: white;
+    border: 1px solid rgb(226 232 240);
+    border-radius: 20px;
+    overflow: hidden;
+}
+.kn-table th, .kn-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgb(226 232 240);
+    font-size: 0.875rem;
+    text-align: left;
+}
+.kn-table tr:last-child td { border-bottom: none; }
+.kn-table thead th {
+    background: rgb(248 250 252);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    color: rgb(71 85 105);
+}
+.kn-table .kn-check { color: rgb(16 185 129); }
+.kn-table .kn-cross { color: rgb(203 213 225); }
+.kn-table tr:hover td { background: rgb(248 250 252); }
+
+/* ===== Scroll-down indicator ===== */
+.kn-scroll-hint {
+    position: absolute;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    color: rgb(148 163 184);
+    font-size: 0.75rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+    animation: kn-bounce 2s ease-in-out infinite;
+}
+@keyframes kn-bounce {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50%     { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ===== Section eyebrow ===== */
+.kn-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 9999px;
+    background: rgb(238 242 255);
+    color: rgb(67 56 202);
+    font-size: 0.75rem; font-weight: 600;
+    border: 1px solid rgb(199 210 254);
+}
+
+/* Dark-mode safe overrides for landing-only elements */
+html.dark .kn-bento-card,
+html.dark .kn-testimonial,
+html.dark .kn-price-card,
+html.dark .kn-faq-item,
+html.dark .kn-table {
+    background: rgb(15 23 42);
+    border-color: rgb(30 41 59);
+}
+html.dark .kn-headline { background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 60%, #818cf8 130%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html.dark .kn-pill { background: linear-gradient(rgb(15 23 42), rgb(15 23 42)) padding-box, linear-gradient(110deg, var(--kn-grad-1), var(--kn-grad-2), var(--kn-grad-3), var(--kn-grad-1)) border-box; color: rgb(199 210 254); }
+html.dark .kn-mockup { background: rgb(15 23 42); }
+html.dark .kn-mockup-bar { background: rgb(2 6 23); border-color: rgb(30 41 59); }

@@ -1,0 +1,2 @@
+[2026-04-28 22:59:05] tenant.cross_tenant_access_attempt {"user_id":2,"user_tenant_id":1,"requested_tenant":2,"ip":"::1"}
+[2026-04-28 23:18:14] tenant.cross_tenant_access_attempt {"user_id":2,"user_tenant_id":1,"requested_tenant":2,"ip":"::1"}

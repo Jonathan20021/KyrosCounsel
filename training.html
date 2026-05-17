@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia KyrosCounsel · Entrenamiento guiado</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] } } }
+        };
+        // Aplicar dark mode antes de pintar (sin FOUC)
+        (function(){
+            var t = localStorage.getItem('kn-academy-theme');
+            if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            if (t === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; transition: background .25s, color .25s; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        [x-cloak] { display: none !important; }
+
+        /* ===== Dark mode overrides ===== */
+        html.dark body { background: #0b1120; color: #e2e8f0; }
+        html.dark .bg-white { background-color: #0f172a !important; }
+        html.dark .bg-slate-50 { background-color: #0b1120 !important; }
+        html.dark .bg-slate-50\/30, html.dark .bg-slate-50\/40 { background-color: rgba(15,23,42,0.5) !important; }
+        html.dark .bg-slate-100 { background-color: #1e293b !important; }
+        html.dark .text-slate-900, html.dark .text-slate-700 { color: #e2e8f0 !important; }
+        html.dark .text-slate-600 { color: #cbd5e1 !important; }
+        html.dark .text-slate-500 { color: #94a3b8 !important; }
+        html.dark .text-slate-400 { color: #64748b !important; }
+        html.dark .border-slate-200, html.dark .border-slate-100 { border-color: #1e293b !important; }
+        html.dark .border-slate-300 { border-color: #334155 !important; }
+        html.dark .hover\:bg-slate-50:hover { background-color: rgba(30,41,59,0.5) !important; }
+        html.dark .hover\:bg-slate-100:hover { background-color: #1e293b !important; }
+        html.dark .ring-slate-200 { --tw-ring-color: #1e293b !important; }
+        html.dark .from-slate-900 { --tw-gradient-from: #020617 !important; }
+        html.dark .mock { background: #0f172a; border-color: #1e293b; }
+        html.dark .mock-bar { background: #020617; border-color: #1e293b; }
+        html.dark .kbd { background: #1e293b; border-color: #334155; color: #e2e8f0; box-shadow: 0 1px 0 #334155; }
+        html.dark input, html.dark textarea { background: #0f172a; color: #e2e8f0; border-color: #1e293b; }
+        html.dark .quiz-option { background: #0f172a; border-color: #1e293b; color: #e2e8f0; }
+        html.dark .quiz-option:hover { background: #1e1b4b; }
+        html.dark code { background: #1e293b !important; color: #e2e8f0 !important; }
+
+        /* Gradient text */
+        .grad-text {
+            background: linear-gradient(110deg, #6366f1 20%, #a855f7 50%, #ec4899 80%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        /* Slide animation */
+        .slide-enter { animation: slideEnter 0.4s cubic-bezier(.21,.6,.35,1) both; }
+        @keyframes slideEnter {
+            from { opacity: 0; transform: translateX(20px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Progress bar shimmer */
+        .progress-bar {
+            background: linear-gradient(110deg, #6366f1, #8b5cf6, #ec4899);
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Mockup browser */
+        .mock { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px -8px rgba(15,23,42,0.12); background: white; }
+        .mock-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .mock-dot { width: 9px; height: 9px; border-radius: 999px; }
+
+        /* Step number */
+        .step-num {
+            flex-shrink: 0; width: 32px; height: 32px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; font-weight: 700; font-size: 0.85rem;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px -2px rgba(99,102,241,0.4);
+        }
+
+        /* Kbd */
+        .kbd {
+            display: inline-block;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #f1f5f9;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            box-shadow: 0 1px 0 #cbd5e1;
+        }
+
+        /* Confetti */
+        @keyframes confetti-fall {
+            0%   { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti {
+            position: fixed; top: 0; width: 8px; height: 14px;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 9999; pointer-events: none;
+        }
+
+        /* Pulse para CTA principal */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+            70% { box-shadow: 0 0 0 14px rgba(99,102,241,0); }
+            100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+        }
+        .pulse-cta { animation: pulse-ring 2s infinite; }
+
+        /* Lesson card hover */
+        .lesson-card { transition: all 0.2s; }
+        .lesson-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -10px rgba(15,23,42,0.15); }
+
+        /* Quiz option */
+        .quiz-option { transition: all .15s; }
+        .quiz-option:hover { border-color: #818cf8; background: #eef2ff; }
+        .quiz-option.correct { border-color: #10b981; background: #ecfdf5; }
+        .quiz-option.wrong { border-color: #ef4444; background: #fef2f2; }
+        .quiz-option:disabled { cursor: not-allowed; }
+
+        /* Notes block */
+        .notes-block { background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%); border: 1px dashed #f59e0b; }
+        html.dark .notes-block { background: linear-gradient(180deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04)); border-color: #b45309; }
+
+        /* ===== Print stylesheet — solo certificado limpio ===== */
+        @media print {
+            body { background: white !important; color: black !important; }
+            #kn-nav, header, .kn-orb, .progress-bar,
+            [x-show="screen === 'home'"], [x-show="screen === 'lesson'"],
+            .toast-container, button, .no-print { display: none !important; }
+            [x-show="screen === 'certificate'"] { display: block !important; }
+            .certificate {
+                box-shadow: none !important;
+                page-break-inside: avoid;
+                margin: 0 auto;
+            }
+            #certName { border: none !important; background: transparent !important; }
+            html.dark { background: white !important; }
+            html.dark body, html.dark .certificate { background: white !important; color: black !important; }
+        }
+
+        /* Certificate */
+        .certificate {
+            background:
+                linear-gradient(45deg, transparent 49%, rgba(99,102,241,0.05) 49.5%, transparent 50%),
+                linear-gradient(135deg, #fafbff 0%, #f0e9ff 100%);
+            border: 4px double #818cf8;
+            position: relative;
+        }
+        .certificate::before, .certificate::after {
+            content: ''; position: absolute; width: 60px; height: 60px;
+            border: 3px solid #6366f1;
+        }
+        .certificate::before { top: 16px; left: 16px; border-right: none; border-bottom: none; }
+        .certificate::after  { bottom: 16px; right: 16px; border-left: none; border-top: none; }
+    </style>
+</head>
+<body class="text-slate-900 bg-slate-50 selection:bg-indigo-200 dark:bg-slate-950 dark:text-slate-100" x-data="academy()" x-init="init()" @keydown.window="onKey($event)">
+
+<!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+<div class="fixed top-4 right-4 z-[100] space-y-2 pointer-events-none" aria-live="polite">
+    <template x-for="t in toasts" :key="t.id">
+        <div class="pointer-events-auto rounded-xl px-4 py-3 text-sm shadow-2xl border flex items-center gap-2.5 min-w-[260px] max-w-sm slide-enter"
+             :class="{
+                 'bg-emerald-50 border-emerald-200 text-emerald-800': t.type === 'success',
+                 'bg-blue-50 border-blue-200 text-blue-800': t.type === 'info',
+                 'bg-amber-50 border-amber-200 text-amber-800': t.type === 'warning',
+             }">
+            <span class="text-lg" x-text="t.type === 'success' ? '✓' : (t.type === 'warning' ? '⚠' : 'ℹ')"></span>
+            <span x-text="t.msg" class="flex-1"></span>
+            <button @click="toasts = toasts.filter(x => x.id !== t.id)" class="opacity-50 hover:opacity-100">×</button>
+        </div>
+    </template>
+</div>
+
+<!-- ============================================================
+     PROGRESS BAR (top)
+     ============================================================ -->
+<div class="fixed top-0 inset-x-0 z-50 h-1 bg-slate-200" x-show="screen !== 'home'">
+    <div class="h-full progress-bar transition-all duration-500" :style="`width: ${progressPct}%`"></div>
+</div>
+
+<!-- ============================================================
+     SCREEN: HOME
+     ============================================================ -->
+<div x-show="screen === 'home'" class="min-h-screen relative overflow-hidden">
+    <!-- Orbes -->
+    <div class="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full pointer-events-none -z-10" style="background: radial-gradient(circle, rgba(99,102,241,0.30), transparent 70%); filter: blur(80px);"></div>
+    <div class="absolute -bottom-20 -right-20 w-[600px] h-[600px] rounded-full pointer-events-none -z-10" style="background: radial-gradient(circle, rgba(236,72,153,0.25), transparent 70%); filter: blur(80px);"></div>
+
+    <div class="max-w-5xl mx-auto px-6 py-12 lg:py-20">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-10 flex-wrap gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-lg shadow-indigo-500/30">K</div>
+                <div>
+                    <div class="text-base font-bold tracking-tight">Academia KyrosCounsel</div>
+                    <div class="text-[10px] text-slate-500 uppercase tracking-wider">Entrenamiento guiado · v1.0</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button x-show="completedCount > 0" @click="resetProgress()" class="text-xs font-medium text-slate-500 hover:text-rose-600">Reiniciar progreso</button>
+                <button @click="exportNotes()" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition" title="Exportar notas">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Notas
+                </button>
+                <button @click="showBadgesPanel = true" class="relative p-2 rounded-lg hover:bg-slate-100 transition" title="Mis insignias">
+                    <span class="text-lg">🏆</span>
+                    <span x-show="unlockedBadges.length > 0" class="absolute -top-1 -right-1 inline-flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold ring-2 ring-white" x-text="unlockedBadges.length"></span>
+                </button>
+                <button @click="toggleTheme()" class="p-2 rounded-lg hover:bg-slate-100 transition" title="Cambiar tema (T)">
+                    <svg x-show="!isDark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    <svg x-show="isDark" x-cloak xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="text-center mb-12">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 backdrop-blur border border-slate-200 text-xs font-semibold text-indigo-700 mb-5 shadow-sm">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Para abogados de inmigración · ~25 min
+            </span>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+                Domina <span class="grad-text">KyrosCounsel</span>
+                <br>en 12 lecciones guiadas.
+            </h1>
+            <p class="mt-5 text-lg text-slate-600 max-w-2xl mx-auto">
+                Aprende módulo por módulo con ejercicios interactivos, mockups del sistema real y un quiz final.
+                Tu progreso se guarda automáticamente.
+            </p>
+
+            <!-- Stats -->
+            <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+                <div><div class="text-3xl font-bold" x-text="lessons.length"></div><div class="text-xs text-slate-500">lecciones</div></div>
+                <div><div class="text-3xl font-bold grad-text" x-text="`${completedCount}/${lessons.length}`"></div><div class="text-xs text-slate-500">completadas</div></div>
+                <div><div class="text-3xl font-bold" x-text="`${progressPct}%`"></div><div class="text-xs text-slate-500">progreso</div></div>
+                <div><div class="text-3xl font-bold" x-text="remainingMinutes + '′'"></div><div class="text-xs text-slate-500">restante</div></div>
+            </div>
+
+            <!-- CTA -->
+            <button @click="startLesson(nextLesson)"
+                    class="pulse-cta mt-10 inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-7 py-4 text-base font-bold text-white shadow-2xl shadow-indigo-500/20 transition-all hover:scale-[1.02]">
+                <span x-text="completedCount === 0 ? 'Empezar entrenamiento' : (completedCount === lessons.length ? 'Ver certificado' : 'Continuar lección ' + (nextLesson + 1))"></span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+
+        <!-- Atajos -->
+        <div class="mt-8 flex justify-center flex-wrap gap-3 text-xs text-slate-500">
+            <span class="flex items-center gap-1.5"><span class="kbd">←</span> <span class="kbd">→</span> Navegar</span>
+            <span class="flex items-center gap-1.5"><span class="kbd">Enter</span> Completar</span>
+            <span class="flex items-center gap-1.5"><span class="kbd">Esc</span> Volver</span>
+            <span class="flex items-center gap-1.5"><span class="kbd">T</span> Tema</span>
+            <span class="flex items-center gap-1.5"><span class="kbd">/</span> Buscar</span>
+        </div>
+
+        <!-- Buscador + filtros -->
+        <div class="mt-12 mb-6 max-w-xl mx-auto">
+            <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </span>
+                <input id="lessonSearch" x-model="searchQ" placeholder="Buscar lección (calendario, workflows, 2FA...)"
+                       class="w-full pl-11 pr-12 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm shadow-sm">
+                <span x-show="searchQ" x-cloak @click="searchQ=''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">×</span>
+                <span x-show="!searchQ" class="absolute right-3 top-1/2 -translate-y-1/2 kbd">/</span>
+            </div>
+            <div class="mt-3 flex justify-center gap-1 flex-wrap text-xs">
+                <button @click="filterMode='all'" :class="filterMode==='all' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'" class="px-3 py-1 rounded-full font-medium transition">Todas</button>
+                <button @click="filterMode='pending'" :class="filterMode==='pending' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'" class="px-3 py-1 rounded-full font-medium transition">Pendientes</button>
+                <button @click="filterMode='completed'" :class="filterMode==='completed' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'" class="px-3 py-1 rounded-full font-medium transition">Completadas</button>
+                <button @click="filterMode='bookmarked'" :class="filterMode==='bookmarked' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'" class="px-3 py-1 rounded-full font-medium transition">★ Guardadas</button>
+            </div>
+        </div>
+
+        <!-- Lecciones grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <template x-for="item in filteredLessons" :key="item.idx">
+                <div class="relative">
+                    <!-- bookmark toggle -->
+                    <button @click.stop="toggleBookmark(item.idx)"
+                            class="absolute top-3 left-3 z-10 p-1 rounded text-lg transition hover:scale-110"
+                            :title="bookmarks.includes(item.idx) ? 'Quitar marcador' : 'Guardar lección'">
+                        <span x-show="bookmarks.includes(item.idx)" class="text-amber-500">★</span>
+                        <span x-show="!bookmarks.includes(item.idx)" class="text-slate-300 hover:text-amber-400">☆</span>
+                    </button>
+                    <button @click="startLesson(item.idx)"
+                            class="lesson-card text-left w-full rounded-2xl border bg-white p-5 pl-10 relative"
+                            :class="completed.includes(item.idx) ? 'border-emerald-300 bg-emerald-50/30' : (item.idx === nextLesson ? 'border-indigo-400 ring-2 ring-indigo-100' : 'border-slate-200')">
+                        <!-- check si completada -->
+                        <div x-show="completed.includes(item.idx)" class="absolute top-3 right-3 h-7 w-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <!-- nota indicator -->
+                        <div x-show="hasNote(item.idx)" class="absolute top-3 right-12 text-amber-500 text-xs" title="Tienes una nota">📝</div>
+                        <div class="flex items-center gap-2.5 mb-3">
+                            <div class="text-3xl" x-text="item.l.icon"></div>
+                            <span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold" x-text="`Lección ${item.idx + 1}`"></span>
+                        </div>
+                        <h3 class="font-bold leading-tight" x-text="item.l.title"></h3>
+                        <p class="mt-1 text-xs text-slate-600 line-clamp-2" x-text="item.l.subtitle"></p>
+                        <div class="mt-3 flex items-center gap-2 text-[11px] text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span x-text="`${item.l.minutes} min`"></span>
+                        </div>
+                    </button>
+                </div>
+            </template>
+        </div>
+
+        <!-- empty state si no hay matches -->
+        <div x-show="filteredLessons.length === 0" x-cloak class="text-center py-12">
+            <div class="text-5xl mb-3 opacity-50">🔍</div>
+            <p class="text-slate-500 text-sm">Sin lecciones que coincidan.</p>
+            <button @click="searchQ=''; filterMode='all'" class="mt-3 text-xs font-semibold text-indigo-600 hover:text-indigo-500">Limpiar filtros</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: LESSON
+     ============================================================ -->
+<div x-show="screen === 'lesson'" x-cloak class="min-h-screen flex flex-col">
+    <!-- Topbar -->
+    <header class="sticky top-1 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-3">
+            <button @click="goHome()" class="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span class="hidden sm:inline">Inicio</span>
+            </button>
+            <div class="flex-1 text-center">
+                <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold" x-text="`Lección ${currentLesson + 1} de ${lessons.length}`"></div>
+                <div class="text-sm font-bold truncate" x-text="lessons[currentLesson]?.title"></div>
+            </div>
+            <button @click="toggleTheme()" class="p-2 rounded-lg hover:bg-slate-100 transition" title="Cambiar tema (T)">
+                <svg x-show="!isDark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                <svg x-show="isDark" x-cloak xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/></svg>
+            </button>
+            <div class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded" x-text="`${progressPct}%`"></div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 max-w-3xl mx-auto px-6 py-8 lg:py-12 w-full slide-enter" :key="currentLesson">
+
+        <!-- Hero de lección -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-4xl mb-4" :class="lessons[currentLesson]?.iconBg">
+                <span x-text="lessons[currentLesson]?.icon"></span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight" x-text="lessons[currentLesson]?.title"></h1>
+            <p class="mt-3 text-slate-600" x-text="lessons[currentLesson]?.subtitle"></p>
+        </div>
+
+        <!-- Lesson body (cambia por lección) -->
+        <div class="prose prose-slate max-w-none">
+
+            <!-- ============= LECCIÓN 0: BIENVENIDA ============= -->
+            <div x-show="currentLesson === 0">
+                <p class="text-lg leading-relaxed">¡Bienvenido a tu nuevo sistema operativo legal! KyrosCounsel reemplaza Excel, carpetas compartidas y servicios sueltos con <strong>una sola plataforma</strong> diseñada para abogados de inmigración.</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6 not-prose">
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+                        <div class="text-3xl mb-2">🔒</div>
+                        <div class="font-semibold text-sm">Multi-tenant blindado</div>
+                        <p class="text-xs text-slate-500 mt-1">Tus datos jamás se cruzan con otro bufete.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+                        <div class="text-3xl mb-2">🛡️</div>
+                        <div class="font-semibold text-sm">Cifrado AEAD</div>
+                        <p class="text-xs text-slate-500 mt-1">Pasaportes y A-numbers cifrados en disco.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+                        <div class="text-3xl mb-2">⚡</div>
+                        <div class="font-semibold text-sm">Atajos pro</div>
+                        <p class="text-xs text-slate-500 mt-1">Comando rápido <span class="kbd">Ctrl</span>+<span class="kbd">K</span>, kanban drag-drop.</p>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border-l-4 border-indigo-500 bg-indigo-50/50 p-4 not-prose">
+                    <p class="text-sm"><strong>📚 Cómo usar esta academia:</strong> cada lección dura 1-3 minutos. Al final de cada una, marca el botón <strong>"Lección completada"</strong> y avanzarás. Tu progreso se guarda automáticamente en este navegador.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 1: PRIMER LOGIN ============= -->
+            <div x-show="currentLesson === 1">
+                <p>Para entrar al sistema necesitas tu email + contraseña que tu administrador te dio. Si tienes 2FA activado, también un código de 6 dígitos.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Pasos:</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span>
+                        <div class="text-sm">
+                            <strong>Ingresa a tu URL del bufete</strong>
+                            <p class="text-slate-600 mt-0.5">Ejemplo: <code class="bg-slate-100 px-1 rounded text-xs">https://app.kyroscounsel.com/login</code></p>
+                        </div>
+                    </li>
+                    <li class="flex gap-3"><span class="step-num">2</span>
+                        <div class="text-sm">
+                            <strong>Email + contraseña</strong>
+                            <p class="text-slate-600 mt-0.5">Si tu admin habilitó 2FA, te pedirá los 6 dígitos.</p>
+                        </div>
+                    </li>
+                    <li class="flex gap-3"><span class="step-num">3</span>
+                        <div class="text-sm">
+                            <strong>Aterrizas en tu dashboard</strong>
+                            <p class="text-slate-600 mt-0.5">URL: <code class="bg-slate-100 px-1 rounded text-xs">/t/&lt;tu-bufete&gt;/dashboard</code></p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                        <div class="ml-3 text-[11px] text-slate-500 font-mono">app.kyroscounsel.com/login</div>
+                    </div>
+                    <div class="grid grid-cols-2 min-h-[260px]">
+                        <div class="bg-gradient-to-br from-indigo-900 to-violet-900 p-6 text-white">
+                            <div class="text-2xl font-bold leading-tight">Tu bufete<br>migratorio,<br>en un solo lugar.</div>
+                            <div class="mt-4 grid grid-cols-3 gap-2">
+                                <div class="rounded bg-white/10 p-2 text-center"><div class="text-lg font-bold">256</div><div class="text-[9px] opacity-70">AEAD</div></div>
+                                <div class="rounded bg-white/10 p-2 text-center"><div class="text-lg font-bold">2FA</div><div class="text-[9px] opacity-70">TOTP</div></div>
+                                <div class="rounded bg-white/10 p-2 text-center"><div class="text-lg font-bold">∞</div><div class="text-[9px] opacity-70">Casos</div></div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-white">
+                            <div class="text-xs uppercase tracking-wider text-slate-500 font-bold">Iniciar sesión</div>
+                            <div class="mt-3 text-lg font-bold">Bienvenido</div>
+                            <div class="mt-4 space-y-2">
+                                <div class="h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 flex items-center text-xs text-slate-400">tu@bufete.com</div>
+                                <div class="h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 flex items-center text-xs text-slate-400">••••••••</div>
+                                <div class="h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-bold">Iniciar sesión →</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border-l-4 border-amber-500 bg-amber-50/50 p-4 not-prose">
+                    <p class="text-sm"><strong>⚠ Olvidaste tu contraseña:</strong> contacta a tu tenant_admin para que te genere una temporal. No hay flujo de auto-recuperación para staff (sí lo hay para clientes en <code class="text-xs">/cliente/forgot</code>).</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 2: TOUR DEL DASHBOARD ============= -->
+            <div x-show="currentLesson === 2">
+                <p>El dashboard es tu centro de comando. KPIs en vivo, gráficas y accesos rápidos a lo que más usas.</p>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                    </div>
+                    <div class="grid grid-cols-12 min-h-[300px]">
+                        <div class="col-span-3 bg-slate-900 text-slate-300 p-3 text-[10px] space-y-1">
+                            <div class="px-2 py-1.5 rounded bg-slate-800 text-white flex items-center gap-1.5">● Dashboard</div>
+                            <div class="px-2 py-1.5">Clientes <span class="float-right opacity-50">142</span></div>
+                            <div class="px-2 py-1.5">Casos <span class="float-right opacity-50">38</span></div>
+                            <div class="px-2 py-1.5">Documentos</div>
+                            <div class="px-2 py-1.5">Tareas</div>
+                            <div class="px-2 py-1.5">Calendario</div>
+                        </div>
+                        <div class="col-span-9 p-4 bg-white">
+                            <div class="text-xs text-slate-500 font-semibold uppercase">Resumen</div>
+                            <div class="text-xl font-bold">Buenos días</div>
+                            <div class="grid grid-cols-4 gap-2 mt-3">
+                                <div class="rounded-lg border border-slate-200 p-2"><div class="text-[8px] uppercase text-slate-500">Casos</div><div class="text-lg font-bold">142</div><div class="text-[9px] text-emerald-600">↑ 12%</div></div>
+                                <div class="rounded-lg border border-slate-200 p-2"><div class="text-[8px] uppercase text-slate-500">Vencen</div><div class="text-lg font-bold text-amber-600">7</div></div>
+                                <div class="rounded-lg border border-slate-200 p-2"><div class="text-[8px] uppercase text-slate-500">Aprob.</div><div class="text-lg font-bold text-emerald-600">89%</div></div>
+                                <div class="rounded-lg border border-slate-200 p-2"><div class="text-[8px] uppercase text-slate-500">Ingresos</div><div class="text-lg font-bold">$42k</div></div>
+                            </div>
+                            <div class="mt-3 rounded-lg border border-slate-200 p-2 h-16 flex items-end gap-0.5">
+                                <template x-for="h in [40,65,50,80,45,70,55,90,60,75,50,85]">
+                                    <div class="flex-1 rounded-t bg-gradient-to-t from-indigo-500 to-violet-400" :style="`height:${h}%`"></div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Lo que verás aquí:</h3>
+                <ul class="space-y-1.5 text-sm not-prose">
+                    <li class="flex gap-2"><span class="text-indigo-500 font-bold">→</span> <strong>KPIs principales:</strong> casos activos, próximos a vencer, tasa de aprobación, ingresos del mes.</li>
+                    <li class="flex gap-2"><span class="text-indigo-500 font-bold">→</span> <strong>Sparkline de actividad:</strong> evolución de tu volumen los últimos 30 días.</li>
+                    <li class="flex gap-2"><span class="text-indigo-500 font-bold">→</span> <strong>Tareas urgentes:</strong> qué necesitas atender hoy.</li>
+                    <li class="flex gap-2"><span class="text-indigo-500 font-bold">→</span> <strong>Distribución por abogado:</strong> equilibrio de carga del equipo.</li>
+                </ul>
+
+                <div class="rounded-xl border border-slate-200 bg-white p-4 mt-5 not-prose">
+                    <p class="text-sm"><strong>💡 Tip:</strong> Pasa el mouse sobre cualquier KPI para ver el detalle. Click → te lleva al módulo relacionado.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 3: CREAR CLIENTE ============= -->
+            <div x-show="currentLesson === 3">
+                <p>Tu primer paso real: registrar a una persona que representas. KyrosCounsel cifra automáticamente el pasaporte y A-number al guardar.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Pasos:</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><strong>Sidebar → Clientes → "Nuevo cliente"</strong></div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm"><strong>Datos básicos:</strong> nombre, apellido, email, teléfono, nacionalidad, país de residencia.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm"><strong>Datos sensibles:</strong> pasaporte, A-number, fecha de nacimiento. <em>Se cifran al guardar.</em></div></li>
+                    <li class="flex gap-3"><span class="step-num">4</span><div class="text-sm"><strong>Guarda.</strong> El cliente aparece en la lista. Desde su perfil podrás crear casos, generar enlaces de portal, y descargar invoices.</div></li>
+                </ol>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                        <div class="ml-3 text-[11px] text-slate-500 font-mono">/clients/new</div>
+                    </div>
+                    <div class="p-5 bg-white">
+                        <div class="text-lg font-bold">Nuevo cliente</div>
+                        <div class="grid grid-cols-2 gap-3 mt-3">
+                            <div>
+                                <div class="text-[10px] uppercase font-semibold text-slate-500">Nombre</div>
+                                <div class="mt-1 h-8 rounded-md border border-slate-200 bg-slate-50 px-2 flex items-center text-xs">María</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] uppercase font-semibold text-slate-500">Apellido</div>
+                                <div class="mt-1 h-8 rounded-md border border-slate-200 bg-slate-50 px-2 flex items-center text-xs">Rodríguez</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1">Pasaporte <span class="text-[8px] bg-rose-100 text-rose-700 px-1.5 rounded">🔒 cifrado</span></div>
+                                <div class="mt-1 h-8 rounded-md border border-slate-200 bg-slate-50 px-2 flex items-center text-xs font-mono">XX••••1234</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] uppercase font-semibold text-slate-500 flex items-center gap-1">A-Number <span class="text-[8px] bg-rose-100 text-rose-700 px-1.5 rounded">🔒 cifrado</span></div>
+                                <div class="mt-1 h-8 rounded-md border border-slate-200 bg-slate-50 px-2 flex items-center text-xs font-mono">A•••••789</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <div class="rounded-md bg-indigo-600 text-white px-4 py-1.5 text-xs font-bold">Guardar</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border-l-4 border-violet-500 bg-violet-50/50 p-4 not-prose">
+                    <p class="text-sm"><strong>🔍 Búsqueda inteligente:</strong> aunque el pasaporte esté cifrado, puedes buscar exactamente por él. Usamos un blind index HMAC-SHA256 que permite búsqueda sin descifrar.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 4: CREAR CASO ============= -->
+            <div x-show="currentLesson === 4">
+                <p>El caso es el corazón del trabajo. Cada caso agrupa cliente, beneficiarios, evidencia, pagos, citas, plazos y comunicación.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Crear y trabajar:</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><strong>Casos → "Nuevo caso"</strong>. Selecciona cliente principal + tipo (I-130, I-485, asilo, N-400, etc.).</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm"><strong>Asigna abogado responsable</strong> y plazo (deadline). El sistema crea automáticamente las tareas iniciales del workflow del tipo de caso.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm"><strong>Cambia estado arrastrando</strong> en el kanban: draft → filed → RFE → approved.</div></li>
+                </ol>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                        <div class="ml-3 text-[11px] text-slate-500 font-mono">/cases/board</div>
+                    </div>
+                    <div class="p-3 bg-slate-50 grid grid-cols-4 gap-2">
+                        <div class="rounded-lg border border-slate-200 bg-white p-2">
+                            <div class="text-[9px] uppercase font-bold text-slate-500 mb-2">Draft <span class="float-right">3</span></div>
+                            <div class="rounded-md border border-slate-200 p-1.5 text-[10px] mb-1"><div class="font-bold">#KYR-2401</div><div class="text-slate-500">María R. · I-485</div></div>
+                            <div class="rounded-md border border-slate-200 p-1.5 text-[10px]"><div class="font-bold">#KYR-2402</div><div class="text-slate-500">Juan G. · N-400</div></div>
+                        </div>
+                        <div class="rounded-lg border border-blue-200 bg-blue-50/40 p-2">
+                            <div class="text-[9px] uppercase font-bold text-blue-700 mb-2">Filed <span class="float-right">5</span></div>
+                            <div class="rounded-md border border-blue-200 bg-white p-1.5 text-[10px]"><div class="font-bold">#KYR-2403</div><div class="text-slate-500">Ana L. · Asilo</div></div>
+                        </div>
+                        <div class="rounded-lg border border-amber-300 bg-amber-50/40 p-2">
+                            <div class="text-[9px] uppercase font-bold text-amber-700 mb-2">RFE <span class="float-right text-rose-600">2 ⚠</span></div>
+                            <div class="rounded-md border border-amber-300 bg-white p-1.5 text-[10px]"><div class="font-bold">#KYR-2404</div><div class="text-slate-500">Carlos M. · I-130</div></div>
+                        </div>
+                        <div class="rounded-lg border border-emerald-200 bg-emerald-50/40 p-2">
+                            <div class="text-[9px] uppercase font-bold text-emerald-700 mb-2">Approved <span class="float-right">8</span></div>
+                            <div class="rounded-md border border-emerald-200 bg-white p-1.5 text-[10px]"><div class="font-bold">#KYR-2405</div><div class="text-slate-500">Lucía P. · I-485 ✓</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50/50 p-4 not-prose">
+                    <p class="text-sm"><strong>🔥 Magia automática:</strong> cuando recibes una RFE y mueves el caso al estado <strong>RFE</strong>, el sistema dispara el workflow que crea automáticamente una tarea con plazo y un email al cliente.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 5: SUBIR DOCUMENTOS ============= -->
+            <div x-show="currentLesson === 5">
+                <p>Pasaportes, I-94, actas, fotos. Todo se cifra en disco. Al descargar, el sistema verifica integridad SHA-256 — si el archivo se corrompió, te avisa.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Cómo subir:</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><strong>Desde el caso:</strong> tab "Documentos" → arrastra archivos o click "Subir".</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm"><strong>Categoriza:</strong> pasaporte, I-94, acta, foto, RFE response. Aparecen agrupados.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm"><strong>Tipos:</strong> PDF, JPG, PNG, DOCX. Tope: 25 MB por archivo.</div></li>
+                </ol>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                    </div>
+                    <div class="p-4 bg-white grid grid-cols-4 gap-2">
+                        <template x-for="d in [['Pasaporte_Maria.pdf','PDF','rose'],['I94_Juan_2024.jpg','JPG','blue'],['Acta_Nacimiento.pdf','PDF','rose'],['Carta_Apoyo.docx','DOC','slate'],['Foto_USCIS.jpg','JPG','blue'],['I797_Carlos.pdf','PDF','rose'],['Tax_Returns.pdf','PDF','rose'],['Bank_Stmt.pdf','PDF','rose']]">
+                            <div class="rounded-lg border border-slate-200 p-2">
+                                <div class="w-8 h-8 rounded-md flex items-center justify-center font-bold text-[9px] mb-1.5"
+                                     :class="`bg-${d[2]}-100 text-${d[2]}-700`" x-text="d[1]"></div>
+                                <div class="text-[10px] font-medium truncate" x-text="d[0]"></div>
+                                <div class="text-[8px] text-emerald-600 flex items-center gap-0.5 mt-0.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Cifrado
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 6: TAREAS ============= -->
+            <div x-show="currentLesson === 6">
+                <p>Las tareas son tus pendientes con plazo. Asígnalas a ti o a tu equipo. Vista lista o tablero kanban.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Crear tarea:</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><strong>Tareas → "Nueva"</strong> o usa <span class="kbd">Ctrl</span>+<span class="kbd">K</span> y escribe "nueva tarea".</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm"><strong>Título + asignar a usuario + fecha + prioridad</strong> (urgente/alta/normal/baja).</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm"><strong>Vincula al caso si aplica.</strong> Aparece tanto en el caso como en el calendario.</div></li>
+                </ol>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                    </div>
+                    <div class="p-4 bg-white space-y-2">
+                        <template x-for="t in [['Responder RFE - #KYR-2401','Hoy','urgente','rose'],['Subir affidavit de María','Mañana','alta','amber'],['Llamar a Juan García','2 días','normal','slate'],['Revisar I-130 de Carlos','5 días','normal','slate']]">
+                            <div class="flex items-center gap-3 p-2 rounded-lg border border-slate-200">
+                                <input type="checkbox" class="rounded">
+                                <div class="flex-1 text-xs" x-text="t[0]"></div>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-full"
+                                      :class="`bg-${t[3]}-50 text-${t[3]}-700`" x-text="t[2]"></span>
+                                <span class="text-[10px] text-slate-500 font-medium w-14 text-right" x-text="t[1]"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-slate-200 bg-white p-4 not-prose">
+                    <p class="text-sm"><strong>💡 Tip:</strong> Las tareas vencidas aparecen en rojo en el dashboard y disparan notificación al asignado.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 7: CALENDARIO ============= -->
+            <div x-show="currentLesson === 7">
+                <p>Vista mensual o semanal donde aparecen tareas, vencimientos de casos, citas y presentaciones — todo en un solo calendario.</p>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                        <div class="ml-3 text-[11px] text-slate-500 font-mono">/calendar</div>
+                    </div>
+                    <div class="p-4 bg-white">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-base font-bold">Octubre 2026</div>
+                            <div class="flex gap-1 text-[10px]">
+                                <span class="px-2 py-1 rounded bg-slate-900 text-white font-bold">Mes</span>
+                                <span class="px-2 py-1 rounded text-slate-500">Semana</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-1">
+                            <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1">
+                            <template x-for="d in [['',''],['1',''],['2','task'],['3',''],['4','rfe'],['5',''],['6',''],['7','task'],['8',''],['9','hearing'],['10',''],['11','task'],['12',''],['13',''],['14',''],['15','rfe'],['16',''],['17',''],['18','task'],['19',''],['20',''],['21',''],['22','hearing'],['23',''],['24','task'],['25',''],['26',''],['27',''],['28','rfe'],['29',''],['30','']]">
+                                <div class="aspect-square rounded border border-slate-200 p-1 text-[9px] flex flex-col" :class="d[1] === 'rfe' ? 'bg-rose-50 border-rose-200' : (d[1] === 'hearing' ? 'bg-violet-50 border-violet-200' : (d[1] === 'task' ? 'bg-blue-50 border-blue-200' : ''))">
+                                    <span class="font-semibold text-slate-700" x-text="d[0]"></span>
+                                    <template x-if="d[1] === 'rfe'"><span class="text-[7px] text-rose-700 mt-auto">RFE</span></template>
+                                    <template x-if="d[1] === 'hearing'"><span class="text-[7px] text-violet-700 mt-auto">Audi.</span></template>
+                                    <template x-if="d[1] === 'task'"><span class="text-[7px] text-blue-700 mt-auto">Tarea</span></template>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="flex gap-3 mt-3 text-[10px]">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-rose-400"></span> Vencimiento</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-violet-400"></span> Audiencia</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-blue-400"></span> Tarea</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Cómo usarlo:</h3>
+                <ul class="space-y-1.5 text-sm not-prose">
+                    <li class="flex gap-2"><span class="text-sky-500 font-bold">→</span> <strong>Click en evento</strong> → abre el caso o tarea relacionada.</li>
+                    <li class="flex gap-2"><span class="text-sky-500 font-bold">→</span> <strong>Cambia entre Mensual y Semanal</strong> según el detalle que necesites.</li>
+                    <li class="flex gap-2"><span class="text-sky-500 font-bold">→</span> <strong>Color codificado:</strong> rojo = vencimiento de RFE/plazo, violeta = audiencia, azul = tarea normal.</li>
+                </ul>
+
+                <div class="rounded-xl border border-slate-200 bg-white p-4 mt-5 not-prose">
+                    <p class="text-sm"><strong>💡 Tip:</strong> Si vinculas una tarea a un caso, aparece en ambos calendarios. Útil para tener visibilidad cruzada.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 8: WORKFLOWS ============= -->
+            <div x-show="currentLesson === 8">
+                <p>Aquí desbloqueas <strong>la magia</strong> del sistema. Los workflows son reglas <em>cuando-entonces</em> que ejecutan acciones automáticas: crear tareas, enviar emails, notificar al equipo. Sin código.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Anatomía de un workflow</h3>
+                <div class="grid grid-cols-3 gap-2 mt-3 not-prose">
+                    <div class="rounded-xl border border-purple-200 bg-purple-50/40 p-3 text-center">
+                        <div class="text-2xl mb-1">🎯</div>
+                        <div class="font-bold text-sm">Trigger</div>
+                        <p class="text-xs text-slate-600 mt-1">Qué evento dispara</p>
+                    </div>
+                    <div class="rounded-xl border border-amber-200 bg-amber-50/40 p-3 text-center">
+                        <div class="text-2xl mb-1">🔍</div>
+                        <div class="font-bold text-sm">Condición</div>
+                        <p class="text-xs text-slate-600 mt-1">Filtros opcionales</p>
+                    </div>
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/40 p-3 text-center">
+                        <div class="text-2xl mb-1">⚡</div>
+                        <div class="font-bold text-sm">Acción</div>
+                        <p class="text-xs text-slate-600 mt-1">Qué hace el sistema</p>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Triggers disponibles</h3>
+                <ul class="space-y-1.5 text-sm not-prose mb-5">
+                    <li class="flex gap-2"><span class="text-purple-500 font-bold">→</span> <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">case.created</code> — al crear caso nuevo</li>
+                    <li class="flex gap-2"><span class="text-purple-500 font-bold">→</span> <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">case.status_changed</code> — cambio de estado (con filtro)</li>
+                    <li class="flex gap-2"><span class="text-purple-500 font-bold">→</span> <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">task.overdue</code> — tarea vencida sin completar</li>
+                    <li class="flex gap-2"><span class="text-purple-500 font-bold">→</span> <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">document.uploaded</code> — al subir documento</li>
+                </ul>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Ejemplo real: respuesta automática a RFE</h3>
+                <pre class="rounded-xl bg-slate-900 text-slate-100 p-4 text-xs overflow-x-auto font-mono not-prose">when case.status_changed
+  AND new_status = "RFE"
+do:
+  → create_task(
+      title: "Responder RFE — {{case.number}}",
+      due_in_days: 7,
+      assignee: case.attorney_id,
+      priority: "urgente"
+  )
+  → send_email(
+      template: "rfe_recibida",
+      to: case.client.email
+  )
+  → notify(case.attorney_id, "Nueva RFE recibida")</pre>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Crear un workflow</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><strong>Workflows → "Nuevo"</strong>. Elige trigger.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm"><strong>Filtros</strong> opcionales (ej. solo casos tipo I-485).</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm"><strong>Acciones</strong> en cadena: crear tarea, enviar email, cambiar estado.</div></li>
+                    <li class="flex gap-3"><span class="step-num">4</span><div class="text-sm"><strong>Activa.</strong> Cada ejecución queda en <code class="text-xs bg-slate-100 px-1 rounded">workflow_runs</code> para auditoría.</div></li>
+                </ol>
+
+                <div class="rounded-xl border-l-4 border-purple-500 bg-purple-50/50 p-4 mt-5 not-prose">
+                    <p class="text-sm"><strong>🔥 Por qué importa:</strong> los abogados que usan workflows recuperan ~12 horas a la semana. Es la diferencia entre llevar 30 casos y llevar 80.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 9: PLANTILLAS DE EMAIL ============= -->
+            <div x-show="currentLesson === 9">
+                <p>Mensajes pre-armados con variables (mail merge) que envías a clientes desde el caso. Profesional, consistente y rápido.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Variables disponibles</h3>
+                <div class="grid grid-cols-2 gap-1.5 not-prose mb-5">
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{client.first_name}}</code>
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{client.last_name}}</code>
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{client.email}}</code>
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{case.number}}</code>
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{case.type}}</code>
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{case.status}}</code>
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{tenant.name}}</code>
+                    <code class="bg-slate-100 px-2 py-1.5 rounded text-xs">{{attorney.name}}</code>
+                </div>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                        <div class="ml-3 text-[11px] text-slate-500 font-mono">/templates/edit</div>
+                    </div>
+                    <div class="p-4 bg-white">
+                        <div class="text-[10px] uppercase font-semibold text-slate-500 mb-1">Asunto</div>
+                        <div class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs mb-3">Actualización de tu caso {{case.number}}</div>
+                        <div class="text-[10px] uppercase font-semibold text-slate-500 mb-1">Cuerpo</div>
+                        <div class="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-xs leading-relaxed">
+                            Hola <span class="bg-pink-100 text-pink-700 px-1 rounded font-mono">{{client.first_name}}</span>,<br><br>
+                            Te escribo para informarte que tu caso <span class="bg-pink-100 text-pink-700 px-1 rounded font-mono">{{case.number}}</span>
+                            (<span class="bg-pink-100 text-pink-700 px-1 rounded font-mono">{{case.type}}</span>)
+                            ha cambiado a estado <span class="bg-pink-100 text-pink-700 px-1 rounded font-mono">{{case.status}}</span>.<br><br>
+                            Quedo atento,<br>
+                            <span class="bg-pink-100 text-pink-700 px-1 rounded font-mono">{{attorney.name}}</span><br>
+                            <span class="bg-pink-100 text-pink-700 px-1 rounded font-mono">{{tenant.name}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Plantillas pre-hechas</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><strong>Plantillas → "Sembrar"</strong> para cargar las pre-armadas: engagement letter, RFE recibida, recordatorio cita, decisión aprobada/denegada.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm"><strong>Edita o crea nuevas.</strong> Soporta HTML básico (negritas, listas, links).</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm"><strong>Envía desde el caso</strong>: botón "Enviar email" → elige plantilla → preview → enviar. Queda en <code class="text-xs bg-slate-100 px-1 rounded">email_log</code> y audit.</div></li>
+                </ol>
+
+                <div class="rounded-xl border border-slate-200 bg-white p-4 mt-5 not-prose">
+                    <p class="text-sm"><strong>💡 Tip:</strong> Combina plantillas con workflows. Ejemplo: "cuando caso pase a aprobado → enviar plantilla felicitación" → cero esfuerzo manual.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 10: COMANDO RÁPIDO ============= -->
+            <div x-show="currentLesson === 10">
+                <p class="text-lg">El acelerador más útil del sistema. Aprende este atajo y triplicas tu velocidad.</p>
+
+                <div class="my-8 text-center not-prose">
+                    <div class="inline-flex items-center gap-2 text-3xl">
+                        <span class="kbd" style="font-size:1.2rem; padding: 0.5rem 0.9rem;">Ctrl</span>
+                        <span class="text-slate-400">+</span>
+                        <span class="kbd" style="font-size:1.2rem; padding: 0.5rem 0.9rem;">K</span>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-500">(o <span class="kbd">⌘</span>+<span class="kbd">K</span> en Mac)</p>
+                </div>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Qué puedes hacer:</h3>
+                <ul class="space-y-2 not-prose">
+                    <li class="flex gap-2 text-sm"><span class="text-indigo-500 font-bold">→</span> <span><strong>Saltar a cualquier módulo</strong>: escribe "casos", "tareas", "facturación".</span></li>
+                    <li class="flex gap-2 text-sm"><span class="text-indigo-500 font-bold">→</span> <span><strong>Buscar cliente por nombre</strong> o número de caso.</span></li>
+                    <li class="flex gap-2 text-sm"><span class="text-indigo-500 font-bold">→</span> <span><strong>Acciones rápidas</strong>: "nuevo cliente", "crear caso", "subir documento".</span></li>
+                </ul>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                    </div>
+                    <div class="p-6 bg-slate-100 flex items-start justify-center min-h-[260px]">
+                        <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
+                            <div class="p-3 border-b border-slate-100 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-slate-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input class="flex-1 text-sm outline-none" value="maría r" readonly>
+                                <span class="kbd">Esc</span>
+                            </div>
+                            <div class="p-2 space-y-0.5">
+                                <div class="px-2 py-1 text-[10px] uppercase text-slate-500 font-bold">Clientes</div>
+                                <div class="px-2 py-1.5 rounded-md bg-indigo-50 text-sm flex items-center gap-2"><span class="text-violet-500">👤</span> María Rodríguez <span class="ml-auto text-[10px] text-slate-500">Cliente</span></div>
+                                <div class="px-2 py-1.5 rounded-md hover:bg-slate-50 text-sm flex items-center gap-2"><span class="text-violet-500">👤</span> María Pérez <span class="ml-auto text-[10px] text-slate-500">Cliente</span></div>
+                                <div class="px-2 py-1 text-[10px] uppercase text-slate-500 font-bold mt-1">Casos</div>
+                                <div class="px-2 py-1.5 rounded-md hover:bg-slate-50 text-sm flex items-center gap-2"><span class="text-blue-500">📄</span> #KYR-2401 · I-485 <span class="ml-auto text-[10px] text-slate-500">Caso</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 11: GENERAR G-28 / CARTAS ============= -->
+            <div x-show="currentLesson === 11">
+                <p>Genera PDFs legales pre-llenados con los datos del caso en un click.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Plantillas disponibles:</h3>
+                <div class="grid grid-cols-2 gap-2 not-prose">
+                    <div class="rounded-lg border border-slate-200 bg-white p-3"><strong class="text-sm">G-28</strong><p class="text-xs text-slate-600">Notice of Entry of Appearance.</p></div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3"><strong class="text-sm">Cover letter</strong><p class="text-xs text-slate-600">Carátula para el paquete USCIS.</p></div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3"><strong class="text-sm">Engagement letter</strong><p class="text-xs text-slate-600">Contrato cliente-abogado.</p></div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3"><strong class="text-sm">RFE response cover</strong><p class="text-xs text-slate-600">Carátula respuesta a RFE.</p></div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3"><strong class="text-sm">Affidavit of support</strong><p class="text-xs text-slate-600">Declaración económica.</p></div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3"><strong class="text-sm">Asylum cover</strong><p class="text-xs text-slate-600">Carátula de asilo.</p></div>
+                </div>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Cómo generar:</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm">Abre el caso → barra de acciones → <strong>"Generar carta"</strong>.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm">Selecciona la plantilla. Los datos del cliente, beneficiarios y bufete se pre-llenan automáticamente.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm">Descarga PDF o imprime directamente.</div></li>
+                </ol>
+            </div>
+
+            <!-- ============= LECCIÓN 12: COBRAR Y PORTAL CLIENTE ============= -->
+            <div x-show="currentLesson === 12">
+                <p>Dos cosas que le ayudan a tu cliente: cobrarle online (Stripe) y darle acceso a su caso.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">A) Cobrar con Stripe</h3>
+                <ol class="space-y-2 not-prose mb-5">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm">Caso → tab <strong>Pagos → "Nuevo"</strong>.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm">Concepto + monto. Click <strong>"Generar link de pago"</strong>.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm">Comparte el link con tu cliente. Cuando pague, el sistema lo marca automático como "paid".</div></li>
+                </ol>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">B) Plan de cuotas</h3>
+                <ol class="space-y-2 not-prose mb-5">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm">Caso → <strong>"Crear plan de pago"</strong>. Total + número de cuotas + frecuencia.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm">El sistema genera las cuotas. Cada una con su propio link.</div></li>
+                </ol>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">C) Portal del cliente (sin login)</h3>
+                <ol class="space-y-2 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm">Cliente → <strong>"Generar enlace de portal"</strong>.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm">Comparte el link tipo <code class="text-xs bg-slate-100 px-1 rounded">/portal/&lt;token&gt;</code>. Único por cliente.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm">Tu cliente ve sus casos, descarga documentos, te manda mensajes — sin crear cuenta.</div></li>
+                </ol>
+
+                <div class="rounded-xl border-l-4 border-emerald-500 bg-emerald-50/50 p-4 mt-6 not-prose">
+                    <p class="text-sm"><strong>💚 Beneficio:</strong> menos llamadas de "¿cómo va mi caso?" porque el cliente puede verlo solo. Y se siente atendido.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 13: REPORTES Y FINANZAS ============= -->
+            <div x-show="currentLesson === 13">
+                <p>El módulo donde ves <strong>cómo va tu negocio</strong>. Métricas operativas y financieras del bufete con filtros y export a CSV.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Reportes operativos</h3>
+                <div class="grid grid-cols-2 gap-2 not-prose mb-5">
+                    <div class="rounded-lg border border-slate-200 bg-white p-3">
+                        <div class="font-bold text-sm">Por abogado</div>
+                        <p class="text-xs text-slate-600 mt-1">Casos asignados, completados, tasa de éxito.</p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3">
+                        <div class="font-bold text-sm">Por tipo de caso</div>
+                        <p class="text-xs text-slate-600 mt-1">Volumen y tiempos promedio de resolución.</p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3">
+                        <div class="font-bold text-sm">Por país</div>
+                        <p class="text-xs text-slate-600 mt-1">Distribución geográfica de tu clientela.</p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 bg-white p-3">
+                        <div class="font-bold text-sm">Time tracking</div>
+                        <p class="text-xs text-slate-600 mt-1">Horas trabajadas por caso (billable hours).</p>
+                    </div>
+                </div>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                        <div class="ml-3 text-[11px] text-slate-500 font-mono">/finance</div>
+                    </div>
+                    <div class="p-4 bg-white space-y-3">
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="rounded-lg border border-emerald-200 bg-emerald-50/30 p-3">
+                                <div class="text-[9px] uppercase font-bold text-emerald-700">Cobrado</div>
+                                <div class="text-xl font-bold mt-1">$42,800</div>
+                                <div class="text-[9px] text-emerald-600">↑ 8.4% vs mes</div>
+                            </div>
+                            <div class="rounded-lg border border-amber-200 bg-amber-50/30 p-3">
+                                <div class="text-[9px] uppercase font-bold text-amber-700">Pendiente</div>
+                                <div class="text-xl font-bold mt-1">$12,400</div>
+                                <div class="text-[9px] text-slate-500">14 facturas</div>
+                            </div>
+                            <div class="rounded-lg border border-blue-200 bg-blue-50/30 p-3">
+                                <div class="text-[9px] uppercase font-bold text-blue-700">Cuotas activas</div>
+                                <div class="text-xl font-bold mt-1">28</div>
+                                <div class="text-[9px] text-slate-500">7 vencen en 7d</div>
+                            </div>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 p-3">
+                            <div class="text-[10px] font-bold text-slate-700 mb-2">Ingresos — últimos 30 días</div>
+                            <svg viewBox="0 0 400 80" class="w-full h-16">
+                                <defs>
+                                    <linearGradient id="gtFin" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.4"/>
+                                        <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M 0 60 L 40 50 L 80 55 L 120 35 L 160 40 L 200 25 L 240 30 L 280 15 L 320 25 L 360 10 L 400 18 L 400 80 L 0 80 Z" fill="url(#gtFin)"/>
+                                <path d="M 0 60 L 40 50 L 80 55 L 120 35 L 160 40 L 200 25 L 240 30 L 280 15 L 320 25 L 360 10 L 400 18" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Finanzas: lo que verás</h3>
+                <ul class="space-y-1.5 text-sm not-prose mb-5">
+                    <li class="flex gap-2"><span class="text-teal-500 font-bold">→</span> <strong>Ingresos del mes</strong> vs proyectados.</li>
+                    <li class="flex gap-2"><span class="text-teal-500 font-bold">→</span> <strong>Pagos pendientes</strong> con quién debe cuánto.</li>
+                    <li class="flex gap-2"><span class="text-teal-500 font-bold">→</span> <strong>Planes de pago</strong> activos y próximos a vencer.</li>
+                    <li class="flex gap-2"><span class="text-teal-500 font-bold">→</span> <strong>Top clientes</strong> por facturación histórica.</li>
+                </ul>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Exportar a CSV</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm">En cualquier reporte, botón <strong>"Exportar CSV"</strong> arriba a la derecha.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm">Aplica filtros antes de exportar para acotar los datos.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm">Abre con Excel o Google Sheets — incluye BOM UTF-8 para caracteres con tilde.</div></li>
+                </ol>
+
+                <div class="rounded-xl border-l-4 border-teal-500 bg-teal-50/50 p-4 mt-5 not-prose">
+                    <p class="text-sm"><strong>💼 Uso típico:</strong> reporte mensual al socio mayor, conciliación contable a fin de mes, análisis de rentabilidad por tipo de caso para decidir en qué te enfocas.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 14: CONFIGURAR 2FA ============= -->
+            <div x-show="currentLesson === 14">
+                <p>Activa 2FA <strong>hoy mismo</strong>. Es el cambio de seguridad más importante que harás.</p>
+
+                <h3 class="text-lg font-bold mt-6 mb-3">Pasos:</h3>
+                <ol class="space-y-3 not-prose">
+                    <li class="flex gap-3"><span class="step-num">1</span><div class="text-sm"><strong>Perfil → Seguridad (2FA) → "Activar"</strong>.</div></li>
+                    <li class="flex gap-3"><span class="step-num">2</span><div class="text-sm">Escanea el QR con <strong>Google Authenticator, 1Password o Authy</strong>.</div></li>
+                    <li class="flex gap-3"><span class="step-num">3</span><div class="text-sm">Ingresa el código de 6 dígitos para confirmar.</div></li>
+                    <li class="flex gap-3"><span class="step-num">4</span><div class="text-sm">¡Listo! Próximo login pedirá email + contraseña + código TOTP.</div></li>
+                </ol>
+
+                <div class="mock my-6 not-prose">
+                    <div class="mock-bar">
+                        <div class="mock-dot bg-rose-400"></div>
+                        <div class="mock-dot bg-amber-400"></div>
+                        <div class="mock-dot bg-emerald-400"></div>
+                    </div>
+                    <div class="p-6 bg-white text-center">
+                        <div class="inline-block w-32 h-32 rounded-lg p-3" style="background: repeating-linear-gradient(45deg, #1e293b 0 8px, transparent 8px 16px), repeating-linear-gradient(-45deg, #1e293b 0 8px, transparent 8px 16px); background-size: 16px 16px;"></div>
+                        <div class="mt-3 text-xs text-slate-600">Escanea con tu autenticador</div>
+                        <div class="mt-3 inline-flex gap-1.5">
+                            <template x-for="d in ['7','3','9','1','5','8']">
+                                <div class="w-9 h-11 rounded-lg border-2 border-indigo-500 bg-indigo-50 flex items-center justify-center font-bold text-lg" x-text="d"></div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border-l-4 border-rose-500 bg-rose-50/50 p-4 not-prose">
+                    <p class="text-sm"><strong>⚠ Cuida tu app autenticadora:</strong> si pierdes acceso, contacta a tu tenant_admin para resetear 2FA. Considera usar 1Password o Authy con backup en la nube.</p>
+                </div>
+            </div>
+
+            <!-- ============= LECCIÓN 15: QUIZ FINAL ============= -->
+            <div x-show="currentLesson === 15">
+                <div x-show="!quizDone" x-cloak>
+                    <p>Última prueba. Responde 7 preguntas para completar el entrenamiento.</p>
+
+                    <div class="space-y-6 mt-6 not-prose">
+                        <template x-for="(q, qi) in quiz" :key="qi">
+                            <div class="rounded-xl border border-slate-200 bg-white p-5">
+                                <div class="text-[10px] uppercase font-bold text-slate-500" x-text="`Pregunta ${qi + 1}`"></div>
+                                <h3 class="font-bold mt-1" x-text="q.q"></h3>
+                                <div class="mt-3 space-y-2">
+                                    <template x-for="(opt, oi) in q.options" :key="oi">
+                                        <button
+                                            @click="answerQuiz(qi, oi)"
+                                            :disabled="quizAnswers[qi] !== undefined"
+                                            class="quiz-option w-full text-left rounded-lg border border-slate-200 px-4 py-2.5 text-sm"
+                                            :class="quizAnswers[qi] === oi ? (oi === q.correct ? 'correct' : 'wrong') : (quizAnswers[qi] !== undefined && oi === q.correct ? 'correct' : '')">
+                                            <span x-text="opt"></span>
+                                            <template x-if="quizAnswers[qi] === oi && oi === q.correct">
+                                                <span class="float-right text-emerald-600">✓ Correcto</span>
+                                            </template>
+                                            <template x-if="quizAnswers[qi] === oi && oi !== q.correct">
+                                                <span class="float-right text-rose-600">✗ Incorrecto</span>
+                                            </template>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div x-show="quizAnswers[qi] !== undefined" x-cloak class="mt-3 text-xs text-slate-600 bg-slate-50 rounded-md p-2.5" x-text="q.explanation"></div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <button @click="finishQuiz()"
+                            :disabled="Object.keys(quizAnswers).length < quiz.length"
+                            class="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-6 py-3.5 text-sm font-bold text-white shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span>Calcular puntaje</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button>
+                </div>
+
+                <div x-show="quizDone" x-cloak class="text-center py-8">
+                    <div class="text-7xl mb-4" x-text="quizScore >= 6 ? '🎉' : (quizScore >= 4 ? '👍' : '📚')"></div>
+                    <h3 class="text-3xl font-bold mb-2">Tu puntaje: <span x-text="quizScore"></span>/<span x-text="quiz.length"></span></h3>
+                    <p class="text-slate-600" x-text="quizScore >= 6 ? '¡Excelente! Dominas el sistema.' : (quizScore >= 4 ? 'Buen trabajo. Repasa los conceptos que fallaste.' : 'Recomendable repasar las lecciones antes de cerrar.')"></p>
+                    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                        <button @click="goToCertificate()"
+                                class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-6 py-3 text-sm font-bold text-white shadow-xl transition hover:scale-[1.02]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15a4 4 0 100-8 4 4 0 000 8z"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                            Ver mi certificado
+                        </button>
+                        <button @click="resetQuiz()" class="text-sm font-medium text-slate-500 hover:text-indigo-600">↻ Repetir quiz</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== Notas personales (persistente por lección) ===== -->
+        <div x-show="currentLesson !== 15" class="mt-10 not-prose"
+             x-data="{ open: hasNote(currentLesson) }"
+             :key="currentLesson">
+            <button @click="open = !open"
+                    class="w-full flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold hover:bg-slate-50 transition">
+                <span class="flex items-center gap-2">
+                    <span class="text-amber-500">📝</span>
+                    <span x-text="hasNote(currentLesson) ? 'Tu nota guardada' : 'Agregar una nota personal'"></span>
+                </span>
+                <svg :class="open ? 'rotate-180' : ''" class="text-slate-400 transition" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div x-show="open" x-cloak class="mt-2 notes-block rounded-xl p-4">
+                <textarea
+                    :value="notes[currentLesson] || ''"
+                    @input="notes = { ...notes, [currentLesson]: $event.target.value }; save()"
+                    rows="4"
+                    placeholder="Escribe tus apuntes, dudas o recordatorios para esta lección..."
+                    class="w-full rounded-lg border border-amber-200 bg-white/70 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 resize-y"></textarea>
+                <div class="mt-2 flex items-center justify-between text-[11px] text-amber-700">
+                    <span>Tus notas se guardan automáticamente en este navegador.</span>
+                    <button x-show="hasNote(currentLesson)" @click="if(confirm('¿Borrar esta nota?')) { delete notes[currentLesson]; notes = {...notes}; save(); }" class="font-semibold hover:text-rose-600">Borrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer de navegación -->
+        <div class="mt-12 pt-8 border-t border-slate-200 flex items-center justify-between gap-3">
+            <button @click="prevLesson()" :disabled="currentLesson === 0"
+                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-30 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span class="hidden sm:inline">Anterior</span>
+            </button>
+
+            <button x-show="!completed.includes(currentLesson)" @click="completeLesson()"
+                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 transition hover:scale-[1.02]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Marcar como completada</span>
+            </button>
+
+            <span x-show="completed.includes(currentLesson)"
+                  class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-6 py-3 text-sm font-bold text-emerald-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Lección completada
+            </span>
+
+            <button @click="nextLessonAction()" :disabled="currentLesson === lessons.length - 1 && !completed.includes(currentLesson)"
+                    class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-30 disabled:cursor-not-allowed">
+                <span class="hidden sm:inline" x-text="currentLesson === lessons.length - 1 ? 'Finalizar' : 'Siguiente'"></span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+    </main>
+</div>
+
+<!-- ============================================================
+     SCREEN: CERTIFICATE
+     ============================================================ -->
+<div x-show="screen === 'certificate'" x-cloak class="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden">
+    <div class="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full pointer-events-none -z-10" style="background: radial-gradient(circle, rgba(99,102,241,0.20), transparent 70%); filter: blur(80px);"></div>
+    <div class="absolute -bottom-20 -right-20 w-[600px] h-[600px] rounded-full pointer-events-none -z-10" style="background: radial-gradient(circle, rgba(236,72,153,0.18), transparent 70%); filter: blur(80px);"></div>
+
+    <div class="max-w-3xl w-full">
+        <div id="certificateNode" class="certificate rounded-2xl p-12 text-center shadow-2xl">
+            <div class="text-[10px] uppercase tracking-[0.3em] font-bold text-indigo-700 mb-2">Certificado de finalización</div>
+            <h2 class="text-4xl font-bold tracking-tight mt-4" style="font-family: 'JetBrains Mono', monospace;">KyrosCounsel · Academia</h2>
+            <div class="my-6 grad-text text-2xl font-semibold">— Otorgado a —</div>
+            <input id="certName" placeholder="Tu nombre" value="" class="text-3xl font-bold tracking-tight bg-transparent border-b-2 border-indigo-300 px-3 py-2 text-center w-full max-w-md mx-auto outline-none focus:border-indigo-600">
+            <p class="mt-6 text-slate-600 max-w-lg mx-auto">Por completar el entrenamiento guiado de KyrosCounsel: <strong>12 lecciones</strong> sobre operación, casos, documentos, cobros y seguridad.</p>
+            <div class="mt-8 grid grid-cols-3 gap-4 max-w-md mx-auto">
+                <div><div class="text-3xl font-bold" x-text="lessons.length"></div><div class="text-xs text-slate-500 uppercase tracking-wider">Lecciones</div></div>
+                <div><div class="text-3xl font-bold" x-text="quizScore"></div><div class="text-xs text-slate-500 uppercase tracking-wider">Quiz</div></div>
+                <div><div class="text-3xl font-bold" x-text="completionDate"></div><div class="text-xs text-slate-500 uppercase tracking-wider">Fecha</div></div>
+            </div>
+            <div class="mt-10 grid grid-cols-2 gap-8 max-w-sm mx-auto text-xs text-slate-500">
+                <div class="border-t border-slate-300 pt-2">
+                    <div class="font-mono">KYR-CERT-<span x-text="certCode"></span></div>
+                    <div class="text-[10px]">Código de validación</div>
+                </div>
+                <div class="border-t border-slate-300 pt-2">
+                    <div class="text-base">✍️</div>
+                    <div class="text-[10px]">Firma KyrosCounsel</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <button @click="shareCertificate()" class="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-5 py-2.5 text-sm font-semibold transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Compartir
+            </button>
+            <button @click="downloadPDF()" :disabled="downloading"
+                    class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-60">
+                <template x-if="!downloading">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </template>
+                <template x-if="downloading">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                </template>
+                <span x-text="downloading ? 'Generando PDF...' : 'Descargar PDF'"></span>
+            </button>
+            <button @click="window.print()" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Imprimir
+            </button>
+            <button @click="goHome()" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-700 transition">
+                Volver al inicio
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     WELCOME MODAL (primera vez)
+     ============================================================ -->
+<div x-show="showWelcome" x-cloak @click="dismissWelcome()" class="fixed inset-0 z-[80] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.stop x-show="showWelcome"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-90"
+         x-transition:enter-end="opacity-100 scale-100"
+         class="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+        <div class="relative p-8 text-center" style="background: linear-gradient(135deg,#1e1b4b 0%,#4338ca 50%,#7c3aed 100%); color: white;">
+            <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 32px 32px;"></div>
+            <div class="relative">
+                <div class="text-6xl mb-3">👋</div>
+                <h2 class="text-3xl font-bold tracking-tight">¡Bienvenido a la Academia!</h2>
+                <p class="mt-2 text-indigo-100/90">Aprende KyrosCounsel en 16 lecciones guiadas.</p>
+            </div>
+        </div>
+        <div class="p-6 space-y-3">
+            <div class="flex items-start gap-3">
+                <div class="text-2xl">⏱️</div>
+                <div><div class="font-semibold text-sm">~25 minutos en total</div><div class="text-xs text-slate-600 dark:text-slate-400">Lecciones de 1-3 minutos cada una.</div></div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="text-2xl">💾</div>
+                <div><div class="font-semibold text-sm">Tu progreso se guarda</div><div class="text-xs text-slate-600 dark:text-slate-400">Puedes pausar y volver cuando quieras.</div></div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="text-2xl">🏆</div>
+                <div><div class="font-semibold text-sm">Desbloquea insignias</div><div class="text-xs text-slate-600 dark:text-slate-400">7 insignias por avanzar, tomar notas y completar el quiz.</div></div>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="text-2xl">📜</div>
+                <div><div class="font-semibold text-sm">Certificado descargable</div><div class="text-xs text-slate-600 dark:text-slate-400">Al final, descarga tu certificado en PDF.</div></div>
+            </div>
+        </div>
+        <div class="p-6 pt-0">
+            <button @click="dismissWelcome(); startLesson(0)" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-3 text-sm font-bold text-white shadow-xl transition hover:scale-[1.02]">
+                Empezar lección 1
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <button @click="dismissWelcome()" class="mt-2 w-full text-center text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Explorar primero</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     PANEL DE INSIGNIAS
+     ============================================================ -->
+<div x-show="showBadgesPanel" x-cloak @click="showBadgesPanel = false" class="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.stop x-show="showBadgesPanel"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         class="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div>
+                <h3 class="font-bold text-lg">Insignias</h3>
+                <p class="text-xs text-slate-500"><span x-text="unlockedBadges.length"></span> de <span x-text="badges.length"></span> desbloqueadas</p>
+            </div>
+            <button @click="showBadgesPanel = false" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
+            <template x-for="b in badges" :key="b.id">
+                <div class="rounded-xl border p-4 transition"
+                     :class="unlockedBadges.includes(b.id)
+                         ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700'
+                         : 'border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900 opacity-60'">
+                    <div class="flex items-start gap-3">
+                        <div class="text-3xl flex-shrink-0" :class="unlockedBadges.includes(b.id) ? '' : 'grayscale'" x-text="b.emoji"></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-sm flex items-center gap-1.5">
+                                <span x-text="b.title"></span>
+                                <svg x-show="unlockedBadges.includes(b.id)" class="text-emerald-500" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5" x-text="b.desc"></p>
+                            <div x-show="!unlockedBadges.includes(b.id)" class="mt-2 text-[10px] uppercase tracking-wider font-bold text-slate-400">Bloqueada</div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div class="px-6 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs text-slate-500 text-center">
+            Las insignias se desbloquean automáticamente al avanzar
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     ALPINE LOGIC
+     ============================================================ -->
+<script>
+function academy() {
+    return {
+        screen: 'home',
+        currentLesson: 0,
+        completed: [],
+        quizAnswers: {},
+        quizScore: 0,
+        quizDone: false,
+        completionDate: '',
+        certCode: '',
+        downloading: false,
+        isDark: false,
+        toasts: [],
+        searchQ: '',
+        filterMode: 'all',
+        bookmarks: [],
+        notes: {},
+        unlockedBadges: [],
+        showWelcome: false,
+        showBadgesPanel: false,
+
+        badges: [
+            { id: 'first_step',  emoji: '🚀', title: 'Primer paso',         desc: 'Completaste tu primera lección',         check: (s) => s.completed.length >= 1 },
+            { id: 'half_way',    emoji: '⛰️', title: 'A media montaña',     desc: 'Has completado el 50% del entrenamiento', check: (s) => s.completed.length >= Math.ceil(s.lessons.length / 2) },
+            { id: 'note_taker',  emoji: '📝', title: 'Estudiante aplicado', desc: 'Escribiste 3 o más notas personales',     check: (s) => Object.values(s.notes || {}).filter(n => (n||'').trim().length > 0).length >= 3 },
+            { id: 'collector',   emoji: '⭐', title: 'Coleccionista',        desc: 'Guardaste 5 lecciones como favoritas',    check: (s) => (s.bookmarks || []).length >= 5 },
+            { id: 'graduate',    emoji: '🎓', title: 'Graduado',             desc: 'Completaste las 16 lecciones',            check: (s) => s.completed.length >= s.lessons.length },
+            { id: 'perfect',     emoji: '🏆', title: 'Puntaje perfecto',     desc: 'Sacaste 7/7 en el quiz final',            check: (s) => s.quizDone && s.quizScore === s.quiz.length },
+            { id: 'night_owl',   emoji: '🌙', title: 'Búho nocturno',        desc: 'Estudiaste con tema oscuro',              check: (s) => s.isDark },
+        ],
+
+        lessons: [
+            { icon: '👋', iconBg: 'bg-indigo-100', title: 'Bienvenida', subtitle: 'Por qué KyrosCounsel y cómo usar esta academia.', minutes: 1 },
+            { icon: '🔑', iconBg: 'bg-blue-100',   title: 'Tu primer login', subtitle: 'Email, contraseña y 2FA. Qué hacer si olvidas la contraseña.', minutes: 1 },
+            { icon: '📊', iconBg: 'bg-violet-100', title: 'Tour del dashboard', subtitle: 'KPIs, sparklines, distribución por abogado.', minutes: 2 },
+            { icon: '👤', iconBg: 'bg-fuchsia-100', title: 'Crear tu primer cliente', subtitle: 'Cómo registrar una persona con PII cifrada.', minutes: 2 },
+            { icon: '📁', iconBg: 'bg-blue-100',   title: 'Crear y trabajar un caso', subtitle: 'I-130, I-485, asilo. Estados y kanban.', minutes: 3 },
+            { icon: '📎', iconBg: 'bg-rose-100',   title: 'Subir documentos', subtitle: 'Pasaportes, I-94, actas. Cifrado en disco con SHA-256.', minutes: 2 },
+            { icon: '✅', iconBg: 'bg-emerald-100', title: 'Tareas y plazos', subtitle: 'Pendientes asignables con prioridad y vencimiento.', minutes: 2 },
+            { icon: '📅', iconBg: 'bg-sky-100',    title: 'Calendario operativo', subtitle: 'Vista mensual y semanal con tareas y vencimientos.', minutes: 2 },
+            { icon: '🔄', iconBg: 'bg-purple-100', title: 'Workflows automáticos', subtitle: 'Reglas cuando-entonces. Automatiza tareas repetitivas.', minutes: 3 },
+            { icon: '✉️', iconBg: 'bg-pink-100',   title: 'Plantillas de email', subtitle: 'Mensajes pre-armados con mail merge de variables.', minutes: 2 },
+            { icon: '⚡', iconBg: 'bg-amber-100',  title: 'Comando rápido (Ctrl+K)', subtitle: 'El atajo que triplica tu velocidad.', minutes: 2 },
+            { icon: '📄', iconBg: 'bg-slate-100',  title: 'Generar G-28 y cartas', subtitle: 'PDFs legales pre-llenados con un click.', minutes: 2 },
+            { icon: '💳', iconBg: 'bg-emerald-100', title: 'Cobrar y portal cliente', subtitle: 'Stripe links + acceso del cliente sin login.', minutes: 3 },
+            { icon: '📈', iconBg: 'bg-teal-100',   title: 'Reportes y finanzas', subtitle: 'Análisis del bufete, MRR, cobros pendientes, exports.', minutes: 3 },
+            { icon: '🛡️', iconBg: 'bg-rose-100',   title: 'Configurar 2FA', subtitle: 'Activa autenticación de 2 pasos. Es crítico.', minutes: 2 },
+            { icon: '🎯', iconBg: 'bg-indigo-100', title: 'Quiz final', subtitle: '7 preguntas para validar lo aprendido.', minutes: 4 },
+        ],
+
+        quiz: [
+            {
+                q: '¿Qué pasa con el pasaporte y A-number cuando los guardas en un cliente?',
+                options: [
+                    'Se guardan en texto plano para que sean fáciles de buscar.',
+                    'Se cifran automáticamente con clave derivada por tenant.',
+                    'Se envían a USCIS como confirmación.',
+                    'Se borran después de 30 días.'
+                ],
+                correct: 1,
+                explanation: 'Los PII se cifran con XChaCha20-Poly1305 y clave derivada por tenant (HKDF-SHA256). Sin la clave maestra son ilegibles.'
+            },
+            {
+                q: '¿Qué atajo de teclado abre el comando rápido (búsqueda global y acciones)?',
+                options: [
+                    'Ctrl + S',
+                    'Ctrl + B',
+                    'Ctrl + K',
+                    'Ctrl + Espacio'
+                ],
+                correct: 2,
+                explanation: 'Ctrl+K (o ⌘+K en Mac) es el atajo universal del comando rápido.'
+            },
+            {
+                q: '¿Qué dispara el sistema cuando mueves un caso al estado "RFE"?',
+                options: [
+                    'Nada, solo cambia el color en el kanban.',
+                    'Borra el caso del calendario.',
+                    'Crea automáticamente una tarea con plazo y envía email al cliente (vía workflow).',
+                    'Genera un G-28.'
+                ],
+                correct: 2,
+                explanation: 'Hay un workflow pre-configurado que reacciona a "case.status_changed" con destino RFE. Crea tarea + email automáticamente.'
+            },
+            {
+                q: '¿Cómo le das acceso a un cliente para que vea su caso sin crear cuenta?',
+                options: [
+                    'Le das tu password.',
+                    'Generas un enlace de portal con token único desde la vista del cliente.',
+                    'Imprimes el caso y se lo mandas por correo postal.',
+                    'No es posible.'
+                ],
+                correct: 1,
+                explanation: 'En el cliente → "Generar enlace de portal" produces un link tipo /portal/<token> único. El cliente accede sin login.'
+            },
+            {
+                q: '¿Qué pasa al descargar un documento si su SHA-256 no coincide con el almacenado?',
+                options: [
+                    'No pasa nada, el archivo se descarga igual.',
+                    'El sistema corrompe automáticamente el archivo.',
+                    'Bloquea la descarga, registra el evento en audit y te avisa.',
+                    'Se descarga pero con marca de agua.'
+                ],
+                correct: 2,
+                explanation: 'La verificación SHA-256 al descargar protege contra corrupción/manipulación. Si no coincide, se aborta la descarga.'
+            },
+            {
+                q: 'En las plantillas de email, ¿qué hace la sintaxis {{client.first_name}}?',
+                options: [
+                    'Es un comentario que el cliente no ve.',
+                    'Es una variable de mail merge: se reemplaza con el nombre real del cliente al enviar.',
+                    'Es código JavaScript que ejecuta en el navegador del cliente.',
+                    'Genera un link único.'
+                ],
+                correct: 1,
+                explanation: 'Las llaves dobles indican variables que se sustituyen automáticamente con datos del caso al enviar el email.'
+            },
+            {
+                q: 'En un workflow, ¿qué es un "trigger"?',
+                options: [
+                    'El email que se envía al cliente.',
+                    'El evento que dispara la ejecución del workflow (ej. case.status_changed).',
+                    'Un botón en el dashboard.',
+                    'El archivo PDF generado.'
+                ],
+                correct: 1,
+                explanation: 'El trigger define cuándo se ejecuta el workflow. Triggers comunes: case.created, case.status_changed, task.overdue, document.uploaded.'
+            }
+        ],
+
+        get progressPct() {
+            return Math.round((this.completed.length / this.lessons.length) * 100);
+        },
+        get completedCount() {
+            return this.completed.length;
+        },
+        get nextLesson() {
+            for (let i = 0; i < this.lessons.length; i++) {
+                if (!this.completed.includes(i)) return i;
+            }
+            return this.lessons.length - 1;
+        },
+        get remainingMinutes() {
+            return this.lessons.reduce((acc, l, i) =>
+                acc + (this.completed.includes(i) ? 0 : (l.minutes || 0)), 0);
+        },
+        get filteredLessons() {
+            const q = (this.searchQ || '').trim().toLowerCase();
+            return this.lessons.map((l, idx) => ({ l, idx })).filter(({ l, idx }) => {
+                if (this.filterMode === 'completed' && !this.completed.includes(idx)) return false;
+                if (this.filterMode === 'pending'   &&  this.completed.includes(idx)) return false;
+                if (this.filterMode === 'bookmarked' && !this.bookmarks.includes(idx)) return false;
+                if (!q) return true;
+                return (l.title + ' ' + l.subtitle + ' ' + (l.icon || '')).toLowerCase().includes(q);
+            });
+        },
+        hasNote(idx) {
+            return !!(this.notes[idx] && this.notes[idx].trim());
+        },
+        toggleBookmark(idx) {
+            if (this.bookmarks.includes(idx)) {
+                this.bookmarks = this.bookmarks.filter(x => x !== idx);
+                this.toast('Marcador eliminado', 'info', 1500);
+            } else {
+                this.bookmarks.push(idx);
+                this.toast('★ Lección guardada', 'success', 1500);
+            }
+            this.save();
+        },
+
+        init() {
+            const saved = JSON.parse(localStorage.getItem('kn-academy') || '{}');
+            this.completed   = saved.completed || [];
+            this.quizAnswers = saved.quizAnswers || {};
+            this.quizScore   = saved.quizScore || 0;
+            this.quizDone    = saved.quizDone || false;
+            this.completionDate = saved.completionDate || new Date().toLocaleDateString('es', { day: 'numeric', month: 'short' });
+            this.certCode    = saved.certCode || Math.random().toString(36).slice(2, 8).toUpperCase();
+            this.bookmarks   = saved.bookmarks || [];
+            this.notes       = saved.notes || {};
+            this.unlockedBadges = saved.unlockedBadges || [];
+
+            // Welcome modal solo la primera vez (sin progreso ni dismiss previo)
+            if (this.completed.length === 0 && !localStorage.getItem('kn-academy-welcomed')) {
+                this.showWelcome = true;
+            }
+
+            // Verificar achievements al cargar
+            this.$nextTick(() => this.checkBadges());
+
+            // Sincronizar isDark con html.dark
+            this.isDark = document.documentElement.classList.contains('dark');
+
+            // Deep-link: ?lesson=N abre directo esa lección
+            const params = new URLSearchParams(location.search);
+            const deepLesson = parseInt(params.get('lesson'), 10);
+            if (!isNaN(deepLesson) && deepLesson >= 0 && deepLesson < this.lessons.length) {
+                this.showWelcome = false;
+                setTimeout(() => this.startLesson(deepLesson), 50);
+            }
+
+            // Persist on changes
+            this.$watch('completed', () => this.save());
+            this.$watch('quizAnswers', () => this.save());
+            this.$watch('quizScore', () => this.save());
+            this.$watch('quizDone', () => this.save());
+        },
+
+        toggleTheme() {
+            this.isDark = !this.isDark;
+            document.documentElement.classList.toggle('dark', this.isDark);
+            localStorage.setItem('kn-academy-theme', this.isDark ? 'dark' : 'light');
+        },
+
+        onKey(e) {
+            // No interceptar si está escribiendo en un input/textarea
+            const tag = (e.target?.tagName || '').toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
+
+            // Toggle tema con T (en cualquier pantalla)
+            if (e.key === 't' || e.key === 'T') { this.toggleTheme(); return; }
+
+            // En home: / abre el buscador
+            if (this.screen === 'home' && e.key === '/') {
+                e.preventDefault();
+                document.getElementById('lessonSearch')?.focus();
+                return;
+            }
+
+            // En lección: navegación con flechas, Enter para completar, Esc para volver, B bookmark
+            if (this.screen === 'lesson') {
+                if (e.key === 'ArrowLeft')  { e.preventDefault(); this.prevLesson(); }
+                if (e.key === 'ArrowRight') { e.preventDefault(); this.nextLessonAction(); }
+                if (e.key === 'Escape')     { e.preventDefault(); this.goHome(); }
+                if (e.key === 'b' || e.key === 'B') { e.preventDefault(); this.toggleBookmark(this.currentLesson); }
+                if (e.key === 'Enter' && !this.completed.includes(this.currentLesson) && this.currentLesson !== 15) {
+                    e.preventDefault(); this.completeLesson();
+                }
+            }
+            if (this.screen === 'certificate' && e.key === 'Escape') {
+                this.goHome();
+            }
+        },
+
+        toast(msg, type = 'success', ms = 3500) {
+            const id = Date.now() + Math.random();
+            this.toasts.push({ id, msg, type });
+            setTimeout(() => {
+                this.toasts = this.toasts.filter(t => t.id !== id);
+            }, ms);
+        },
+
+        async shareCertificate() {
+            const name = (document.getElementById('certName')?.value || 'Estudiante').trim();
+            const text = `🎓 Acabo de completar la Academia KyrosCounsel — ${this.lessons.length} lecciones · puntaje quiz: ${this.quizScore}/${this.quiz.length}\nCódigo: KYR-CERT-${this.certCode}`;
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: 'Certificado KyrosCounsel', text });
+                    this.toast('Compartido', 'success');
+                } catch (e) { /* canceló */ }
+            } else if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+                this.toast('Texto copiado al portapapeles', 'success');
+            } else {
+                prompt('Copia este texto:', text);
+            }
+        },
+
+        save() {
+            localStorage.setItem('kn-academy', JSON.stringify({
+                completed: this.completed,
+                quizAnswers: this.quizAnswers,
+                quizScore: this.quizScore,
+                quizDone: this.quizDone,
+                completionDate: this.completionDate,
+                certCode: this.certCode,
+                bookmarks: this.bookmarks,
+                notes: this.notes,
+                unlockedBadges: this.unlockedBadges,
+            }));
+            this.checkBadges();
+        },
+
+        checkBadges() {
+            for (const b of this.badges) {
+                if (this.unlockedBadges.includes(b.id)) continue;
+                if (b.check(this)) {
+                    this.unlockedBadges.push(b.id);
+                    localStorage.setItem('kn-academy', JSON.stringify({
+                        ...JSON.parse(localStorage.getItem('kn-academy') || '{}'),
+                        unlockedBadges: this.unlockedBadges
+                    }));
+                    this.toast(`${b.emoji} ¡Insignia desbloqueada! "${b.title}"`, 'success', 4000);
+                    this.fireConfetti();
+                }
+            }
+        },
+
+        dismissWelcome() {
+            this.showWelcome = false;
+            localStorage.setItem('kn-academy-welcomed', '1');
+        },
+
+        exportNotes() {
+            const lines = [`# Mis notas — Academia KyrosCounsel`, `_Exportado: ${new Date().toLocaleString('es')}_`, ''];
+            let count = 0;
+            this.lessons.forEach((l, idx) => {
+                const note = (this.notes[idx] || '').trim();
+                if (!note) return;
+                count++;
+                lines.push(`## ${l.icon} Lección ${idx + 1}: ${l.title}`);
+                lines.push(`_${l.subtitle}_`, '');
+                lines.push(note, '', '---', '');
+            });
+            if (count === 0) {
+                this.toast('No tienes notas guardadas aún', 'warning');
+                return;
+            }
+            const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `notas-kyroscounsel-${new Date().toISOString().slice(0,10)}.md`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            this.toast(`✓ ${count} notas exportadas como Markdown`, 'success');
+        },
+
+        startLesson(idx) {
+            if (this.completed.length === this.lessons.length && idx === this.lessons.length - 1) {
+                this.screen = 'certificate';
+                return;
+            }
+            this.currentLesson = idx;
+            this.screen = 'lesson';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+
+        goHome() {
+            this.screen = 'home';
+            window.scrollTo({ top: 0 });
+        },
+
+        prevLesson() {
+            if (this.currentLesson > 0) {
+                this.currentLesson--;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        },
+
+        nextLessonAction() {
+            if (this.currentLesson < this.lessons.length - 1) {
+                this.currentLesson++;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (this.completed.length === this.lessons.length) {
+                this.screen = 'certificate';
+                this.completionDate = new Date().toLocaleDateString('es', { day: 'numeric', month: 'short' });
+                this.fireConfetti();
+            }
+        },
+
+        completeLesson() {
+            const wasNew = !this.completed.includes(this.currentLesson);
+            if (wasNew) {
+                this.completed.push(this.currentLesson);
+                this.save();
+                this.toast(`✓ Lección "${this.lessons[this.currentLesson].title}" completada`, 'success', 2400);
+            }
+            // Si era la última, ir al certificado
+            if (this.completed.length === this.lessons.length) {
+                this.completionDate = new Date().toLocaleDateString('es', { day: 'numeric', month: 'short' });
+                this.fireConfetti();
+                setTimeout(() => { this.screen = 'certificate'; }, 600);
+            } else {
+                // Auto-avanzar
+                setTimeout(() => this.nextLessonAction(), 400);
+            }
+        },
+
+        answerQuiz(qi, oi) {
+            if (this.quizAnswers[qi] !== undefined) return;
+            this.quizAnswers = { ...this.quizAnswers, [qi]: oi };
+        },
+
+        finishQuiz() {
+            let score = 0;
+            this.quiz.forEach((q, i) => { if (this.quizAnswers[i] === q.correct) score++; });
+            this.quizScore = score;
+            this.quizDone = true;
+            // Marcar la lección quiz como completada (índice 15)
+            if (!this.completed.includes(this.currentLesson)) {
+                this.completed.push(this.currentLesson);
+            }
+            this.save();
+            if (score >= 6) this.fireConfetti();
+        },
+
+        goToCertificate() {
+            this.completionDate = new Date().toLocaleDateString('es', { day: 'numeric', month: 'short' });
+            this.screen = 'certificate';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => this.fireConfetti(), 200);
+        },
+
+        resetQuiz() {
+            this.quizAnswers = {};
+            this.quizDone = false;
+            this.quizScore = 0;
+        },
+
+        resetProgress() {
+            if (!confirm('¿Reiniciar todo el progreso? No se puede deshacer.')) return;
+            this.completed = [];
+            this.quizAnswers = {};
+            this.quizDone = false;
+            this.quizScore = 0;
+            localStorage.removeItem('kn-academy');
+            this.screen = 'home';
+        },
+
+        async downloadPDF() {
+            const node = document.getElementById('certificateNode');
+            if (!node || !window.html2canvas || !window.jspdf) {
+                alert('No se pudieron cargar las librerías PDF. Usa "Imprimir" como alternativa.');
+                return;
+            }
+            this.downloading = true;
+            try {
+                // Capturar el certificado a canvas
+                const canvas = await html2canvas(node, {
+                    scale: 2,                  // alta resolución
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    logging: false,
+                });
+                const imgData = canvas.toDataURL('image/png');
+
+                // Crear PDF en orientación landscape A4
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                const pageW = pdf.internal.pageSize.getWidth();
+                const pageH = pdf.internal.pageSize.getHeight();
+
+                // Ajustar imagen al ancho del PDF, manteniendo proporción
+                const imgRatio = canvas.height / canvas.width;
+                const imgW = pageW - 20;            // margen 10mm cada lado
+                const imgH = imgW * imgRatio;
+                const offsetX = 10;
+                const offsetY = (pageH - imgH) / 2;
+
+                pdf.addImage(imgData, 'PNG', offsetX, offsetY, imgW, imgH, '', 'FAST');
+
+                // Metadata
+                const name = (document.getElementById('certName')?.value || 'Estudiante').trim();
+                pdf.setProperties({
+                    title: `Certificado KyrosCounsel — ${name}`,
+                    subject: 'Certificado de finalización de la Academia KyrosCounsel',
+                    author: 'KyrosCounsel',
+                    creator: 'KyrosCounsel Academy',
+                });
+
+                // Descargar
+                const safe = name.replace(/[^a-z0-9-]/gi, '_').toLowerCase() || 'certificado';
+                pdf.save(`certificado-kyroscounsel-${safe}.pdf`);
+            } catch (err) {
+                console.error(err);
+                alert('Error generando el PDF. Intenta con "Imprimir" como alternativa.');
+            } finally {
+                this.downloading = false;
+            }
+        },
+
+        fireConfetti() {
+            const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+            for (let i = 0; i < 50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + '%';
+                c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDelay = Math.random() * 0.5 + 's';
+                c.style.animationDuration = (Math.random() * 1.5 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+    }
+}
+</script>
+</body>
+</html>
